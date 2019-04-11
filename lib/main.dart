@@ -13,7 +13,9 @@ class _MyAppState extends State<MyApp> {
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
 
-  TextEditingController project = TextEditingController();
+  TextEditingController _project = TextEditingController();
+  TextEditingController _task = TextEditingController();
+  TextEditingController _comment = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +34,27 @@ class _MyAppState extends State<MyApp> {
         tabBar: CupertinoTabBar(
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.home),
-              title: Text('Home'),
+              icon: Icon(
+                IconData(
+                  0xF2FD,
+                  fontFamily: CupertinoIcons.iconFont,
+                  fontPackage: CupertinoIcons.iconFontPackage,
+                  matchTextDirection: true,
+                ),
+              ),
+              title: Text('Tracken'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.gear_big),
-              title: Text('Home'),
+              icon: Icon(CupertinoIcons.pen),
+              title: Text('Zeiterfassung'),
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.clock),
               title: Text('Buchungen'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.settings),
+              title: Text('Zugangsdaten'),
             ),
           ],
         ),
@@ -114,7 +127,7 @@ class _MyAppState extends State<MyApp> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoTextField(
-                          controller: project,
+                          controller: _project,
                           clearButtonMode: OverlayVisibilityMode.editing,
                           placeholder: "Kunde/Projekt",
                           autocorrect: false,
@@ -125,6 +138,7 @@ class _MyAppState extends State<MyApp> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoTextField(
+                          controller: _task,
                           placeholder: "Aufgabe",
                           autocorrect: false,
                           maxLines: 1,
@@ -133,6 +147,7 @@ class _MyAppState extends State<MyApp> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoTextField(
+                          controller: _comment,
                           placeholder: "Kommentar",
                           maxLines: null,
                           keyboardType: TextInputType.multiline,
@@ -310,7 +325,15 @@ class _MyAppState extends State<MyApp> {
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoButton.filled(
                           child: Text("Verwerfen"),
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              _project.clear();
+                              _task.clear();
+                              _comment.clear();
+                              _startDate = DateTime.now();
+                              _endDate = DateTime.now();
+                            });
+                          },
                         ),
                       )
                     ],
@@ -373,6 +396,60 @@ class _MyAppState extends State<MyApp> {
                         Booking(),
                         Booking(),
                         Booking(),
+                      ],
+                    ),
+                  );
+                },
+              );
+            case 3:
+              return CupertinoTabView(
+                builder: (BuildContext context) {
+                  return Padding(
+                    padding: EdgeInsets.all(10),
+                    child: ListView(
+                      physics: ClampingScrollPhysics(),
+                      children: <Widget>[
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Ihre Papierkram.de Zugangsdaten",
+                              textScaleFactor: 2,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: CupertinoTextField(
+                            placeholder: "Firmen ID",
+                            autocorrect: false,
+                            maxLines: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: CupertinoTextField(
+                            placeholder: "Nutzer",
+                            autocorrect: false,
+                            maxLines: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: CupertinoTextField(
+                            placeholder: "Passwort",
+                            autocorrect: false,
+                            maxLines: 1,
+                            obscureText: true,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: CupertinoButton.filled(
+                            child: Text("Speichern"),
+                            onPressed: () {},
+                          ),
+                        )
                       ],
                     ),
                   );
