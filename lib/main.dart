@@ -22,6 +22,9 @@ class _MyAppState extends State<MyApp> {
     return CupertinoApp(
       title: 'Papierkram.de TimeTracker',
       theme: CupertinoThemeData(
+        primaryColor: Color.fromRGBO(185, 213, 222, 1),
+        primaryContrastingColor: Color.fromRGBO(0, 56, 75, 1),
+        barBackgroundColor: Color.fromRGBO(46, 129, 157, 1),
         textTheme: CupertinoTextThemeData(
           textStyle: TextStyle(
             color: CupertinoColors.white,
