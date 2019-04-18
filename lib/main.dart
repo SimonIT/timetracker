@@ -90,22 +90,18 @@ class _MyAppState extends State<MyApp> {
                         ],
                         mainAxisAlignment: MainAxisAlignment.center,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CupertinoButton(
-                          child: tracking ? Icon(CupertinoIcons.pause_solid) : Icon(CupertinoIcons.play_arrow_solid),
-                          onPressed: () {
-                            setState(() {
-                              tracking = !tracking;
-                              if (tracking) {
-                                _startDate = DateTime.now();
-                              } else {
-                                _endDate = DateTime.now();
-                              }
-                            });
-                          },
-                          color: tracking ? Color.fromRGBO(218, 78, 73, 1) : Color.fromRGBO(91, 182, 91, 1),
-                        ),
+                      TrackingButton(
+                        onPressed: () {
+                          setState(() {
+                            this.tracking = !this.tracking;
+                            if (tracking) {
+                              _startDate = DateTime.now();
+                            } else {
+                              _endDate = DateTime.now();
+                            }
+                          });
+                        },
+                        tracking: this.tracking,
                       ),
                     ],
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -295,23 +291,18 @@ class _MyAppState extends State<MyApp> {
                               "00:00:00",
                               textScaleFactor: 1.5,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CupertinoButton(
-                                child:
-                                    tracking ? Icon(CupertinoIcons.pause_solid) : Icon(CupertinoIcons.play_arrow_solid),
-                                onPressed: () {
-                                  setState(() {
-                                    tracking = !tracking;
-                                    if (tracking) {
-                                      _startDate = DateTime.now();
-                                    } else {
-                                      _endDate = DateTime.now();
-                                    }
-                                  });
-                                },
-                                color: tracking ? Color.fromRGBO(218, 78, 73, 1) : Color.fromRGBO(91, 182, 91, 1),
-                              ),
+                            TrackingButton(
+                              onPressed: () {
+                                setState(() {
+                                  this.tracking = !this.tracking;
+                                  if (tracking) {
+                                    _startDate = DateTime.now();
+                                  } else {
+                                    _endDate = DateTime.now();
+                                  }
+                                });
+                              },
+                              tracking: this.tracking,
                             ),
                           ],
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -493,6 +484,29 @@ class Booking extends StatelessWidget {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class TrackingButton extends StatelessWidget {
+  final Function onPressed;
+  final bool tracking;
+
+  const TrackingButton({
+    Key key,
+    @required this.onPressed,
+    @required this.tracking,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CupertinoButton(
+        child: tracking ? Icon(CupertinoIcons.pause_solid) : Icon(CupertinoIcons.play_arrow_solid),
+        onPressed: onPressed,
+        color: tracking ? Color.fromRGBO(218, 78, 73, 1) : Color.fromRGBO(91, 182, 91, 1),
       ),
     );
   }
