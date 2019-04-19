@@ -366,7 +366,12 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ),
                         ),
-                        Booking(),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
                         Container(
                           decoration: BoxDecoration(
                             border: Border(
@@ -384,12 +389,42 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ),
                         ),
-                        Booking(),
-                        Booking(),
-                        Booking(),
-                        Booking(),
-                        Booking(),
-                        Booking(),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
+                        Booking(
+                          onPressed: () {
+                            _project.text = "IteaSoft: Intern";
+                            _task.text = "Customer Desk";
+                          },
+                        ),
                       ],
                     ),
                   );
@@ -457,6 +492,13 @@ class _MyAppState extends State<MyApp> {
 }
 
 class Booking extends StatelessWidget {
+  final Function onPressed;
+
+  const Booking({
+    Key key,
+    @required this.onPressed,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -485,6 +527,8 @@ class Booking extends StatelessWidget {
           ],
         ),
       ),
+      behavior: HitTestBehavior.translucent,
+      onTap: onPressed,
     );
   }
 }
