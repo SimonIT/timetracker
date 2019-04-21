@@ -342,6 +342,7 @@ class _MyAppState extends State<MyApp> {
                       vertical: 16.0,
                     ),
                     child: ListView(
+                      physics: ClampingScrollPhysics(),
                       children: <Widget>[
                         Container(
                           decoration: BoxDecoration(
