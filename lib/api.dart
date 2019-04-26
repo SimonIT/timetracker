@@ -17,11 +17,17 @@ String baseUrl;
 String apiDomain = ".papierkram.de"; // LIVE
 String apiPath = "/api/v1/";
 
+const Map<String, String> headers = {
+  'Accept': '*/*',
+  'Content-Type': 'application/x-www-form-urlencoded',
+};
+
 saveSettingsCheckToken(String company, String username, String password) async {
   String tokenUrl = 'https://' + company + apiDomain + apiPath;
   http.Response result = await http.post(
     tokenUrl + "auth",
     body: "email:$username&password:$password",
+    headers: headers,
   );
   Map jsonResult = jsonDecode(result.body);
   if ((jsonResult["token"] as String).isNotEmpty) {
@@ -35,6 +41,7 @@ authenticate() async {
     http.Response result = await http.post(
       baseUrl + "auth",
       body: "auth_token=$authToken",
+      headers: headers,
     );
     if (result.statusCode == 200) {
       Map jsonResult = jsonDecode(result.body);
@@ -67,9 +74,11 @@ Future<bool> loadCredentials() async {
 }
 
 loadCustomers() async {
+  Map<String, String> authHeader = {'authToken': authToken};
+  authHeader.addAll(headers);
   http.Response result = await http.get(
     baseUrl + "contact/companies.json",
-    headers: {'authToken': authToken},
+    headers: authHeader,
   );
   if (result.statusCode == 200) {
     Map projects = jsonDecode(result.body);
@@ -78,9 +87,11 @@ loadCustomers() async {
 }
 
 loadProjects() async {
+  Map<String, String> authHeader = {'authToken': authToken};
+  authHeader.addAll(headers);
   http.Response result = await http.get(
     baseUrl + "projects.json",
-    headers: {authToken: authToken},
+    headers: authHeader,
   );
   if (result.statusCode == 200) {
     Map projects = jsonDecode(result.body);
@@ -89,9 +100,11 @@ loadProjects() async {
 }
 
 loadTasks() async {
+  Map<String, String> authHeader = {'authToken': authToken};
+  authHeader.addAll(headers);
   http.Response result = await http.get(
     baseUrl + "tracker/tasks.json",
-    headers: {'authToken': authToken},
+    headers: authHeader,
   );
   if (result.statusCode == 200) {
     Map projects = jsonDecode(result.body);

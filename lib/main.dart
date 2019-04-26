@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:time_tracker/api.dart' as api;
 
 void main() => runApp(MyApp());
 
@@ -16,6 +17,9 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _project = TextEditingController();
   TextEditingController _task = TextEditingController();
   TextEditingController _comment = TextEditingController();
+  TextEditingController _company = TextEditingController();
+  TextEditingController _user = TextEditingController();
+  TextEditingController _password = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -451,6 +455,7 @@ class _MyAppState extends State<MyApp> {
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: CupertinoTextField(
+                            controller: _company,
                             placeholder: "Firmen ID",
                             autocorrect: false,
                             maxLines: 1,
@@ -459,6 +464,7 @@ class _MyAppState extends State<MyApp> {
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: CupertinoTextField(
+                            controller: _user,
                             placeholder: "Nutzer",
                             autocorrect: false,
                             maxLines: 1,
@@ -467,6 +473,7 @@ class _MyAppState extends State<MyApp> {
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: CupertinoTextField(
+                            controller: _password,
                             placeholder: "Passwort",
                             autocorrect: false,
                             maxLines: 1,
@@ -477,7 +484,9 @@ class _MyAppState extends State<MyApp> {
                           padding: const EdgeInsets.only(top: 10),
                           child: CupertinoButton.filled(
                             child: Text("Speichern"),
-                            onPressed: () {},
+                            onPressed: () {
+                              api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
+                            },
                           ),
                         )
                       ],
