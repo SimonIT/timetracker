@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:time_tracker/data.dart';
 
 String authCompany;
 String authUsername;
@@ -23,23 +24,25 @@ const Map<String, String> headers = {
 };
 
 saveSettingsCheckToken(String company, String username, String password) async {
-  String tokenUrl = 'https://' + company + apiDomain + apiPath;
+  String tokenUrl = 'https://$company$apiDomain$apiPath';
   http.Response result = await http.post(
     tokenUrl + "auth",
     body: "email:$username&password:$password",
     headers: headers,
   );
-  Map jsonResult = jsonDecode(result.body);
-  if ((jsonResult["token"] as String).isNotEmpty) {
-    writeCredsToLocalStore(company, username, jsonResult["token"] as String);
-    authenticate();
-  } else {}
+  if (result.statusCode == 200) {
+    Map jsonResult = jsonDecode(result.body);
+    if ((jsonResult["token"] as String).isNotEmpty) {
+      writeCredsToLocalStore(company, username, jsonResult["token"] as String);
+      authenticate();
+    } else {}
+  }
 }
 
 authenticate() async {
   if (await loadCredentials()) {
     http.Response result = await http.post(
-      baseUrl + "auth",
+      "${baseUrl}auth",
       body: "auth_token=$authToken",
       headers: headers,
     );
@@ -68,47 +71,47 @@ Future<bool> loadCredentials() async {
     authCompany = credentials['company'];
     authUsername = credentials['username'];
     authToken = credentials['token'];
-    baseUrl = "https://" + authCompany + apiDomain + apiPath;
+    baseUrl = "https://$authCompany$apiDomain$apiPath";
     return true;
   }
 }
 
-loadCustomers() async {
-  Map<String, String> authHeader = {'authToken': authToken};
-  authHeader.addAll(headers);
+Future<List<Company>> loadCustomers() async {
   http.Response result = await http.get(
-    baseUrl + "contact/companies.json",
-    headers: authHeader,
+    "${baseUrl}contact/companies.json",
+    headers: {'authToken': authToken},
   );
   if (result.statusCode == 200) {
-    Map projects = jsonDecode(result.body);
-    print(projects);
+    Map companies = jsonDecode(result.body);
+    return (companies as List).map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>)).toList();
+  } else {
+    throw Exception();
   }
 }
 
-loadProjects() async {
-  Map<String, String> authHeader = {'authToken': authToken};
-  authHeader.addAll(headers);
+Future<List<Project>> loadProjects() async {
   http.Response result = await http.get(
-    baseUrl + "projects.json",
-    headers: authHeader,
+    "${baseUrl}projects.json",
+    headers: {'authToken': authToken},
   );
   if (result.statusCode == 200) {
     Map projects = jsonDecode(result.body);
-    print(projects);
+    return (projects as List).map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>)).toList();
+  } else {
+    throw Exception();
   }
 }
 
-loadTasks() async {
-  Map<String, String> authHeader = {'authToken': authToken};
-  authHeader.addAll(headers);
+Future<List<Task>> loadTasks() async {
   http.Response result = await http.get(
-    baseUrl + "tracker/tasks.json",
-    headers: authHeader,
+    "${baseUrl}tracker/tasks.json",
+    headers: {'authToken': authToken},
   );
   if (result.statusCode == 200) {
-    Map projects = jsonDecode(result.body);
-    print(projects);
+    Map tasks = jsonDecode(result.body);
+    return (tasks as List).map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>)).toList();
+  } else {
+    throw Exception();
   }
 }
 
