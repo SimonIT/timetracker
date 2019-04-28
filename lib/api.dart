@@ -23,7 +23,7 @@ const Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
 };
 
-saveSettingsCheckToken(String company, String username, String password) async {
+void saveSettingsCheckToken(String company, String username, String password) async {
   String tokenUrl = 'https://$company$apiDomain$apiPath';
   http.Response result = await http.post(
     tokenUrl + "auth",
@@ -39,7 +39,7 @@ saveSettingsCheckToken(String company, String username, String password) async {
   }
 }
 
-authenticate() async {
+void authenticate() async {
   if (await loadCredentials()) {
     http.Response result = await http.post(
       "${baseUrl}auth",
@@ -65,7 +65,10 @@ authenticate() async {
 Future<bool> loadCredentials() async {
   Map<String, String> credentials = await readCredsFromLocalStore();
 
-  if (credentials["company"].isEmpty || credentials["token"].isEmpty) {
+  if (credentials["company"] == null ||
+      credentials["company"].isEmpty ||
+      credentials["token"] == null ||
+      credentials["token"].isEmpty) {
     return false;
   } else {
     authCompany = credentials['company'];
@@ -76,42 +79,66 @@ Future<bool> loadCredentials() async {
   }
 }
 
-Future<List<Company>> loadCustomers() async {
-  http.Response result = await http.get(
-    "${baseUrl}contact/companies.json",
-    headers: {'authToken': authToken},
-  );
-  if (result.statusCode == 200) {
-    Map companies = jsonDecode(result.body);
-    return (companies as List).map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>)).toList();
+Future<Map<String, dynamic>> loadState() async {
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    http.Response result = await http.get(
+      "${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken",
+    );
+    if (result.statusCode == 200) {
+      return jsonDecode(result.body);
+    } else {
+      throw Exception();
+    }
   } else {
-    throw Exception();
+    return null;
+  }
+}
+
+Future<List<Company>> loadCustomers() async {
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    http.Response result = await http.get(
+      "${baseUrl}contact/companies.json?auth_token=$authToken",
+    );
+    if (result.statusCode == 200) {
+      Map companies = jsonDecode(result.body);
+      return (companies as List).map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception();
+    }
+  } else {
+    return null;
   }
 }
 
 Future<List<Project>> loadProjects() async {
-  http.Response result = await http.get(
-    "${baseUrl}projects.json",
-    headers: {'authToken': authToken},
-  );
-  if (result.statusCode == 200) {
-    Map projects = jsonDecode(result.body);
-    return (projects as List).map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>)).toList();
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    http.Response result = await http.get(
+      "${baseUrl}projects.json?auth_token=$authToken",
+    );
+    if (result.statusCode == 200) {
+      Map projects = jsonDecode(result.body);
+      return (projects as List).map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception();
+    }
   } else {
-    throw Exception();
+    return null;
   }
 }
 
 Future<List<Task>> loadTasks() async {
-  http.Response result = await http.get(
-    "${baseUrl}tracker/tasks.json",
-    headers: {'authToken': authToken},
-  );
-  if (result.statusCode == 200) {
-    Map tasks = jsonDecode(result.body);
-    return (tasks as List).map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>)).toList();
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    http.Response result = await http.get(
+      "${baseUrl}tracker/tasks.json?auth_token=$authToken",
+    );
+    if (result.statusCode == 200) {
+      Map tasks = jsonDecode(result.body);
+      return (tasks as List).map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception();
+    }
   } else {
-    throw Exception();
+    return null;
   }
 }
 

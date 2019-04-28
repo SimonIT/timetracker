@@ -1,3 +1,4 @@
+import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
@@ -13,6 +14,7 @@ class _MyAppState extends State<MyApp> {
   bool tracking = false;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
+  Duration _paused = Duration();
 
   TextEditingController _project = TextEditingController();
   TextEditingController _task = TextEditingController();
@@ -20,6 +22,21 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _company = TextEditingController();
   TextEditingController _user = TextEditingController();
   TextEditingController _password = TextEditingController();
+
+  Future<Map<String, dynamic>> _state = _getState();
+
+  static Future<Map<String, dynamic>> _getState() async {
+    await api.authenticate();
+    return api.loadState();
+  }
+
+  Future<Map<String, dynamic>> _refresh() {
+    setState(() {
+      _state = _getState();
+    });
+
+    return _state;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,271 +87,300 @@ class _MyAppState extends State<MyApp> {
             case 0:
               return CupertinoTabView(
                 builder: (BuildContext context) {
-                  return Column(
-                    children: <Widget>[
-                      Row(
+                  return FutureBuilder(
+                    future: _state,
+                    builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                      return Column(
                         children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: <Widget>[
-                                Text(
-                                  'Aufgabe',
+                          Row(
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(
+                                      snapshot.hasData ? snapshot.data["task_name"] as String : "",
+                                    ),
+                                    Text(
+                                      snapshot.hasData
+                                          ? "${snapshot.data["project"]["customer"] as String}:"
+                                              " ${snapshot.data["project"]["name"] as String}"
+                                          : "",
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  "Projekt",
+                              ),
+                              Text(
+                                prettyDuration(
+                                  _startDate.difference(_endDate) - _paused,
+                                  abbreviated: true,
                                 ),
-                              ],
-                            ),
+                                textScaleFactor: 2,
+                              )
+                            ],
+                            mainAxisAlignment: MainAxisAlignment.center,
                           ),
-                          Text(
-                            "0m",
-                            textScaleFactor: 2,
-                          )
+                          TrackingButton(
+                            onPressed: () {
+                              setState(() {
+                                this.tracking = !this.tracking;
+                                if (tracking) {
+                                  _startDate = DateTime.now();
+                                } else {
+                                  _endDate = DateTime.now();
+                                }
+                              });
+                            },
+                            tracking: this.tracking,
+                          ),
                         ],
                         mainAxisAlignment: MainAxisAlignment.center,
-                      ),
-                      TrackingButton(
-                        onPressed: () {
-                          setState(() {
-                            this.tracking = !this.tracking;
-                            if (tracking) {
-                              _startDate = DateTime.now();
-                            } else {
-                              _endDate = DateTime.now();
-                            }
-                          });
-                        },
-                        tracking: this.tracking,
-                      ),
-                    ],
-                    mainAxisAlignment: MainAxisAlignment.center,
+                      );
+                    },
                   );
                 },
               );
             case 1:
               return CupertinoTabView(
                 builder: (BuildContext context) {
-                  return ListView(
-                    physics: ClampingScrollPhysics(),
-                    children: <Widget>[
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            "Zeiterfassung",
-                            textScaleFactor: 2,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CupertinoTextField(
-                          controller: _project,
-                          clearButtonMode: OverlayVisibilityMode.editing,
-                          placeholder: "Kunde/Projekt",
-                          autocorrect: false,
-                          maxLines: 1,
-                          onChanged: (String text) {},
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CupertinoTextField(
-                          controller: _task,
-                          placeholder: "Aufgabe",
-                          autocorrect: false,
-                          maxLines: 1,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CupertinoTextField(
-                          controller: _comment,
-                          placeholder: "Kommentar",
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: BorderSide(
-                                color: CupertinoColors.lightBackgroundGray,
-                                style: BorderStyle.solid,
-                                width: 0.0,
-                              ),
-                              bottom: BorderSide(
-                                color: CupertinoColors.lightBackgroundGray,
-                                style: BorderStyle.solid,
-                                width: 0.0,
-                              ),
-                              left: BorderSide(
-                                color: CupertinoColors.lightBackgroundGray,
-                                style: BorderStyle.solid,
-                                width: 0.0,
-                              ),
-                              right: BorderSide(
-                                color: CupertinoColors.lightBackgroundGray,
-                                style: BorderStyle.solid,
-                                width: 0.0,
+                  return FutureBuilder(
+                    future: _state,
+                    builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                      if (snapshot.hasData) {
+                        Map<String, dynamic> state = snapshot.data;
+                        _project.text =
+                            "${state["project"]["customer"] as String}: ${state["project"]["name"] as String}";
+                        _task.text = state["task_name"] as String;
+                        _comment.text = state["comment"] as String;
+                        _startDate = DateTime.fromMillisecondsSinceEpoch(int.parse(state["started_at"] as String));
+                        _endDate = DateTime.fromMillisecondsSinceEpoch(int.parse(state["ended_at"] as String));
+                        _paused = Duration(milliseconds: int.parse(state["paused_duration"] as String));
+                      }
+                      return ListView(
+                        physics: ClampingScrollPhysics(),
+                        children: <Widget>[
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "Zeiterfassung",
+                                textScaleFactor: 2,
                               ),
                             ),
-                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
                           ),
-                          child: Padding(
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CupertinoTextField(
+                              controller: _project,
+                              clearButtonMode: OverlayVisibilityMode.editing,
+                              placeholder: "Kunde/Projekt",
+                              autocorrect: false,
+                              maxLines: 1,
+                              onChanged: (String text) {},
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CupertinoTextField(
+                              controller: _task,
+                              placeholder: "Aufgabe",
+                              autocorrect: false,
+                              maxLines: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CupertinoTextField(
+                              controller: _comment,
+                              placeholder: "Kommentar",
+                              maxLines: null,
+                              keyboardType: TextInputType.multiline,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: CupertinoColors.lightBackgroundGray,
+                                    style: BorderStyle.solid,
+                                    width: 0.0,
+                                  ),
+                                  bottom: BorderSide(
+                                    color: CupertinoColors.lightBackgroundGray,
+                                    style: BorderStyle.solid,
+                                    width: 0.0,
+                                  ),
+                                  left: BorderSide(
+                                    color: CupertinoColors.lightBackgroundGray,
+                                    style: BorderStyle.solid,
+                                    width: 0.0,
+                                  ),
+                                  right: BorderSide(
+                                    color: CupertinoColors.lightBackgroundGray,
+                                    style: BorderStyle.solid,
+                                    width: 0.0,
+                                  ),
+                                ),
+                                borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        Icon(
+                                          IconData(
+                                            0xF2D1,
+                                            fontFamily: CupertinoIcons.iconFont,
+                                            fontPackage: CupertinoIcons.iconFontPackage,
+                                            matchTextDirection: true,
+                                          ),
+                                          color: CupertinoColors.white,
+                                        ),
+                                        GestureDetector(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                            child: Text(DateFormat("dd.MM.yyyy").format(_startDate)),
+                                          ),
+                                          onTap: () {
+                                            showCupertinoModalPopup<void>(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return _buildBottomPicker(
+                                                  CupertinoDatePicker(
+                                                    mode: CupertinoDatePickerMode.date,
+                                                    initialDateTime: _startDate,
+                                                    use24hFormat: true,
+                                                    onDateTimeChanged: (DateTime newDateTime) {
+                                                      setState(() => _startDate = newDateTime);
+                                                    },
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: <Widget>[
+                                        Icon(
+                                          CupertinoIcons.time_solid,
+                                          color: CupertinoColors.white,
+                                        ),
+                                        GestureDetector(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                            child: Text(DateFormat("HH:mm").format(_startDate)),
+                                          ),
+                                          onTap: () {
+                                            showCupertinoModalPopup<void>(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return _buildBottomPicker(
+                                                  CupertinoDatePicker(
+                                                    mode: CupertinoDatePickerMode.time,
+                                                    initialDateTime: _startDate,
+                                                    use24hFormat: true,
+                                                    onDateTimeChanged: (DateTime newDateTime) {
+                                                      setState(() => _startDate = newDateTime);
+                                                    },
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                          child: Text("bis"),
+                                        ),
+                                        GestureDetector(
+                                          child: Text(DateFormat("HH:mm").format(_endDate)),
+                                          onTap: () {
+                                            showCupertinoModalPopup<void>(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return _buildBottomPicker(
+                                                  CupertinoDatePicker(
+                                                    mode: CupertinoDatePickerMode.time,
+                                                    minimumDate: _startDate,
+                                                    initialDateTime: _endDate,
+                                                    use24hFormat: true,
+                                                    onDateTimeChanged: (DateTime newDateTime) {
+                                                      setState(() => _endDate = newDateTime);
+                                                      print(_endDate.difference(_startDate));
+                                                    },
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
                               children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      IconData(
-                                        0xF2D1,
-                                        fontFamily: CupertinoIcons.iconFont,
-                                        fontPackage: CupertinoIcons.iconFontPackage,
-                                        matchTextDirection: true,
-                                      ),
-                                      color: CupertinoColors.white,
-                                    ),
-                                    GestureDetector(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Text(DateFormat("dd.MM.yyyy").format(_startDate)),
-                                      ),
-                                      onTap: () {
-                                        showCupertinoModalPopup<void>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return _buildBottomPicker(
-                                              CupertinoDatePicker(
-                                                mode: CupertinoDatePickerMode.date,
-                                                initialDateTime: _startDate,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newDateTime) {
-                                                  setState(() => _startDate = newDateTime);
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ],
+                                Text(
+                                  prettyDuration(
+                                    _startDate.difference(_endDate) - _paused,
+                                    abbreviated: true,
+                                  ),
+                                  textScaleFactor: 1.5,
                                 ),
-                                Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      CupertinoIcons.time_solid,
-                                      color: CupertinoColors.white,
-                                    ),
-                                    GestureDetector(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Text(DateFormat("HH:mm").format(_startDate)),
-                                      ),
-                                      onTap: () {
-                                        showCupertinoModalPopup<void>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return _buildBottomPicker(
-                                              CupertinoDatePicker(
-                                                mode: CupertinoDatePickerMode.time,
-                                                initialDateTime: _startDate,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newDateTime) {
-                                                  setState(() => _startDate = newDateTime);
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Text("bis"),
-                                    ),
-                                    GestureDetector(
-                                      child: Text(DateFormat("HH:mm").format(_endDate)),
-                                      onTap: () {
-                                        showCupertinoModalPopup<void>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return _buildBottomPicker(
-                                              CupertinoDatePicker(
-                                                mode: CupertinoDatePickerMode.time,
-                                                minimumDate: _startDate,
-                                                initialDateTime: _endDate,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newDateTime) {
-                                                  setState(() => _endDate = newDateTime);
-                                                  print(_endDate.difference(_startDate));
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ],
+                                TrackingButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      this.tracking = !this.tracking;
+                                      if (tracking) {
+                                        _startDate = DateTime.now();
+                                      } else {
+                                        _endDate = DateTime.now();
+                                      }
+                                    });
+                                  },
+                                  tracking: this.tracking,
                                 ),
                               ],
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                             ),
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: <Widget>[
-                            Text(
-                              "00:00:00",
-                              textScaleFactor: 1.5,
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CupertinoButton.filled(
+                              child: Text("Buchen"),
+                              onPressed: () {},
                             ),
-                            TrackingButton(
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CupertinoButton.filled(
+                              child: Text("Verwerfen"),
                               onPressed: () {
                                 setState(() {
-                                  this.tracking = !this.tracking;
-                                  if (tracking) {
-                                    _startDate = DateTime.now();
-                                  } else {
-                                    _endDate = DateTime.now();
-                                  }
+                                  _project.clear();
+                                  _task.clear();
+                                  _comment.clear();
+                                  _startDate = DateTime.now();
+                                  _endDate = DateTime.now();
                                 });
                               },
-                              tracking: this.tracking,
                             ),
-                          ],
-                          mainAxisAlignment: MainAxisAlignment.center,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CupertinoButton.filled(
-                          child: Text("Buchen"),
-                          onPressed: () {},
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CupertinoButton.filled(
-                          child: Text("Verwerfen"),
-                          onPressed: () {
-                            setState(() {
-                              _project.clear();
-                              _task.clear();
-                              _comment.clear();
-                              _startDate = DateTime.now();
-                              _endDate = DateTime.now();
-                            });
-                          },
-                        ),
-                      )
-                    ],
+                          )
+                        ],
+                      );
+                    },
                   );
                 },
               );
@@ -345,92 +391,71 @@ class _MyAppState extends State<MyApp> {
                     padding: const EdgeInsets.symmetric(
                       vertical: 16.0,
                     ),
-                    child: ListView(
-                      physics: ClampingScrollPhysics(),
-                      children: <Widget>[
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                width: 1,
-                                color: CupertinoColors.lightBackgroundGray,
+                    child: FutureBuilder(
+                      future: _state,
+                      builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                        return ListView.builder(
+                          physics: ClampingScrollPhysics(),
+                          /*children: <Widget>[
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    width: 1,
+                                    color: CupertinoColors.lightBackgroundGray,
+                                  ),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(9.0),
+                                child: Row(
+                                  children: <Widget>[
+                                    Text(
+                                      "Heute",
+                                      textScaleFactor: 1.5,
+                                    ),
+                                    Text("19m"),
+                                  ],
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                ),
                               ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Row(
-                              children: <Widget>[
-                                Text(
-                                  "Heute",
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    width: 1,
+                                    color: CupertinoColors.lightBackgroundGray,
+                                  ),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(9.0),
+                                child: Text(
+                                  "Frühere Einträge",
                                   textScaleFactor: 1.5,
                                 ),
-                                Text("19m"),
-                              ],
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            ),
-                          ),
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
-                          },
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                width: 1,
-                                color: CupertinoColors.lightBackgroundGray,
                               ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Text(
-                              "Frühere Einträge",
-                              textScaleFactor: 1.5,
-                            ),
-                          ),
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
+                          ],*/
+                          itemBuilder: (BuildContext context, int index) {
+                            if (snapshot.hasData) {
+                              Map<String, dynamic> recent = (snapshot.data["recent_entries"] as List)[index];
+                              return RecentTasks(
+                                customer: recent["customer_name"] as String,
+                                project: recent["project_name"] as String,
+                                task: recent["task_name"] as String,
+                                duration: recent["task_duration"] as int,
+                                onPressed: () {
+                                  _project.text = recent["project_name"] as String;
+                                  _task.text = recent["task_name"] as String;
+                                },
+                              );
+                            }
                           },
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
-                          },
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
-                          },
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
-                          },
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
-                          },
-                        ),
-                        Booking(
-                          onPressed: () {
-                            _project.text = "IteaSoft: Intern";
-                            _task.text = "Customer Desk";
-                          },
-                        ),
-                      ],
+                          itemCount: snapshot.hasData ? (snapshot.data["recent_entries"] as List).length : 0,
+                        );
+                      },
                     ),
                   );
                 },
@@ -438,60 +463,70 @@ class _MyAppState extends State<MyApp> {
             case 3:
               return CupertinoTabView(
                 builder: (BuildContext context) {
-                  return Padding(
-                    padding: EdgeInsets.all(10),
-                    child: ListView(
-                      physics: ClampingScrollPhysics(),
-                      children: <Widget>[
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              "Ihre Papierkram.de Zugangsdaten",
-                              textScaleFactor: 2,
-                            ),
+                  return FutureBuilder(
+                      future: api.loadCredentials(),
+                      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                        if (snapshot.hasData && snapshot.data) {
+                          _company.text = api.authCompany;
+                          _user.text = api.authUsername;
+                        }
+                        return Padding(
+                          padding: EdgeInsets.all(10),
+                          child: ListView(
+                            physics: ClampingScrollPhysics(),
+                            children: <Widget>[
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "Ihre Papierkram.de Zugangsdaten",
+                                    textScaleFactor: 2,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: CupertinoTextField(
+                                  controller: _company,
+                                  placeholder: "Firmen ID",
+                                  autocorrect: false,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: CupertinoTextField(
+                                  controller: _user,
+                                  placeholder: "Nutzer",
+                                  autocorrect: false,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: CupertinoTextField(
+                                  controller: _password,
+                                  placeholder: "Passwort",
+                                  autocorrect: false,
+                                  maxLines: 1,
+                                  obscureText: true,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: CupertinoButton.filled(
+                                  child: Text("Speichern"),
+                                  onPressed: () {
+                                    if (_password.text.isNotEmpty) {
+                                      api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
+                                    }
+                                  },
+                                ),
+                              )
+                            ],
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: CupertinoTextField(
-                            controller: _company,
-                            placeholder: "Firmen ID",
-                            autocorrect: false,
-                            maxLines: 1,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: CupertinoTextField(
-                            controller: _user,
-                            placeholder: "Nutzer",
-                            autocorrect: false,
-                            maxLines: 1,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: CupertinoTextField(
-                            controller: _password,
-                            placeholder: "Passwort",
-                            autocorrect: false,
-                            maxLines: 1,
-                            obscureText: true,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: CupertinoButton.filled(
-                            child: Text("Speichern"),
-                            onPressed: () {
-                              api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                  );
+                        );
+                      });
                 },
               );
           }
@@ -501,12 +536,20 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class Booking extends StatelessWidget {
+class RecentTasks extends StatelessWidget {
+  final String customer;
+  final String project;
+  final String task;
+  final int duration;
   final Function onPressed;
 
-  const Booking({
-    Key key,
+  RecentTasks({
+    @required this.customer,
+    @required this.project,
+    @required this.task,
+    @required this.duration,
     @required this.onPressed,
+    Key key,
   }) : super(key: key);
 
   @override
@@ -519,7 +562,7 @@ class Booking extends StatelessWidget {
             Row(
               children: <Widget>[
                 Text(
-                  "IteaSoft: Intern",
+                  "$customer: $project",
                   textScaleFactor: 0.75,
                   style: TextStyle(
                     color: CupertinoColors.lightBackgroundGray,
@@ -529,8 +572,15 @@ class Booking extends StatelessWidget {
             ),
             Row(
               children: <Widget>[
-                Text("Customer Desk"),
-                Text("2:53h"),
+                Text(task),
+                Text(
+                  prettyDuration(
+                    Duration(
+                      seconds: duration,
+                    ),
+                    abbreviated: true,
+                  ),
+                ),
               ],
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
             )
@@ -548,9 +598,9 @@ class TrackingButton extends StatelessWidget {
   final bool tracking;
 
   const TrackingButton({
-    Key key,
     @required this.onPressed,
     @required this.tracking,
+    Key key,
   }) : super(key: key);
 
   @override
