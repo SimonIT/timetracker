@@ -90,6 +90,7 @@ class _MyAppState extends State<MyApp> {
                   return FutureBuilder(
                     future: _state,
                     builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                      set(snapshot);
                       return Column(
                         children: <Widget>[
                           Row(
@@ -102,7 +103,7 @@ class _MyAppState extends State<MyApp> {
                                       snapshot.hasData ? snapshot.data["task_name"] as String : "",
                                     ),
                                     Text(
-                                      snapshot.hasData
+                                      snapshot.hasData && snapshot.data["project"] is Map
                                           ? "${snapshot.data["project"]["customer"] as String}:"
                                               " ${snapshot.data["project"]["name"] as String}"
                                           : "",
@@ -112,7 +113,7 @@ class _MyAppState extends State<MyApp> {
                               ),
                               Text(
                                 prettyDuration(
-                                  _startDate.difference(_endDate) - _paused,
+                                  _endDate.difference(_startDate) - _paused,
                                   abbreviated: true,
                                 ),
                                 textScaleFactor: 2,
@@ -146,16 +147,7 @@ class _MyAppState extends State<MyApp> {
                   return FutureBuilder(
                     future: _state,
                     builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
-                      if (snapshot.hasData) {
-                        Map<String, dynamic> state = snapshot.data;
-                        _project.text =
-                            "${state["project"]["customer"] as String}: ${state["project"]["name"] as String}";
-                        _task.text = state["task_name"] as String;
-                        _comment.text = state["comment"] as String;
-                        _startDate = DateTime.fromMillisecondsSinceEpoch(int.parse(state["started_at"] as String));
-                        _endDate = DateTime.fromMillisecondsSinceEpoch(int.parse(state["ended_at"] as String));
-                        _paused = Duration(milliseconds: int.parse(state["paused_duration"] as String));
-                      }
+                      set(snapshot);
                       return ListView(
                         physics: ClampingScrollPhysics(),
                         children: <Widget>[
@@ -312,7 +304,6 @@ class _MyAppState extends State<MyApp> {
                                                     use24hFormat: true,
                                                     onDateTimeChanged: (DateTime newDateTime) {
                                                       setState(() => _endDate = newDateTime);
-                                                      print(_endDate.difference(_startDate));
                                                     },
                                                   ),
                                                 );
@@ -334,7 +325,7 @@ class _MyAppState extends State<MyApp> {
                               children: <Widget>[
                                 Text(
                                   prettyDuration(
-                                    _startDate.difference(_endDate) - _paused,
+                                    _endDate.difference(_startDate) - _paused,
                                     abbreviated: true,
                                   ),
                                   textScaleFactor: 1.5,
@@ -533,6 +524,24 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
+  }
+
+  void set(AsyncSnapshot<Map<String, dynamic>> snapshot) {
+    if (snapshot.hasData) {
+      Map<String, dynamic> state = snapshot.data;
+      if (state["project"] is Map) {
+        _project.text =
+        "${state["project"]["customer"] as String}: ${state["project"]["name"] as String}";
+      }
+      _task.text = state["task_name"] as String;
+      _comment.text = state["comment"] as String;
+      int startedMillis = int.parse(state["started_at"] as String);
+      _startDate =
+      startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
+      int endedMillis = int.parse(state["ended_at"] as String);
+      _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
+      _paused = Duration(milliseconds: int.parse(state["paused_duration"] as String));
+    }
   }
 }
 
