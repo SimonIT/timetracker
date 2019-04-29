@@ -530,14 +530,12 @@ class _MyAppState extends State<MyApp> {
     if (snapshot.hasData) {
       Map<String, dynamic> state = snapshot.data;
       if (state["project"] is Map) {
-        _project.text =
-        "${state["project"]["customer"] as String}: ${state["project"]["name"] as String}";
+        _project.text = "${state["project"]["customer"] as String}: ${state["project"]["name"] as String}";
       }
       _task.text = state["task_name"] as String;
       _comment.text = state["comment"] as String;
       int startedMillis = int.parse(state["started_at"] as String);
-      _startDate =
-      startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
+      _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
       int endedMillis = int.parse(state["ended_at"] as String);
       _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
       _paused = Duration(milliseconds: int.parse(state["paused_duration"] as String));
