@@ -92,3 +92,62 @@ class Task {
 
   Map<String, dynamic> toJson() => _$TaskToJson(this);
 }
+
+@JsonSerializable()
+class TrackerState {
+  String uuid;
+  String status;
+  String task_name;
+  String started_at;
+  String stopped_at;
+  String ended_at;
+  String paused_duration;
+  String entry_date;
+  String comment;
+  String manual_time_change;
+  StateProject project;
+  List<Entry> recent_entries;
+  int tracked_today;
+  int tracked_week;
+  String realtime_channel;
+
+  TrackerState();
+
+  factory TrackerState.fromJson(Map<String, dynamic> json) => _$TrackerStateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TrackerStateToJson(this);
+}
+
+@JsonSerializable()
+class StateProject {
+  String id;
+  String name;
+  String customer;
+
+  StateProject();
+
+  factory StateProject.fromJson(Map<String, dynamic> json) => _$StateProjectFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StateProjectToJson(this);
+}
+
+@JsonSerializable()
+class Entry {
+  int id;
+  int task_id;
+  String task_name;
+  int project_id;
+  String project_name;
+  int customer_id;
+  String customer_name;
+  DateTime ended_at;
+  int timestamp;
+  int duration;
+  int task_duration;
+
+  Entry();
+
+  factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EntryToJson(this);
+}

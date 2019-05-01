@@ -148,3 +148,81 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'updated_at': instance.updated_at?.toIso8601String(),
       'user_id': instance.user_id
     };
+
+TrackerState _$TrackerStateFromJson(Map<String, dynamic> json) {
+  return TrackerState()
+    ..uuid = json['uuid'] as String
+    ..status = json['status'] as String
+    ..task_name = json['task_name'] as String
+    ..started_at = json['started_at'] as String
+    ..stopped_at = json['stopped_at'] as String
+    ..ended_at = json['ended_at'] as String
+    ..paused_duration = json['paused_duration'] as String
+    ..entry_date = json['entry_date'] as String
+    ..comment = json['comment'] as String
+    ..manual_time_change = json['manual_time_change'] as String
+    ..project = json['project'] == null ? null : StateProject.fromJson(json['project'] as Map<String, dynamic>)
+    ..recent_entries = (json['recent_entries'] as List)
+        ?.map((e) => e == null ? null : Entry.fromJson(e as Map<String, dynamic>))
+        ?.toList()
+    ..tracked_today = json['tracked_today'] as int
+    ..tracked_week = json['tracked_week'] as int
+    ..realtime_channel = json['realtime_channel'] as String;
+}
+
+Map<String, dynamic> _$TrackerStateToJson(TrackerState instance) => <String, dynamic>{
+      'uuid': instance.uuid,
+      'status': instance.status,
+      'task_name': instance.task_name,
+      'started_at': instance.started_at,
+      'stopped_at': instance.stopped_at,
+      'ended_at': instance.ended_at,
+      'paused_duration': instance.paused_duration,
+      'entry_date': instance.entry_date,
+      'comment': instance.comment,
+      'manual_time_change': instance.manual_time_change,
+      'project': instance.project,
+      'recent_entries': instance.recent_entries,
+      'tracked_today': instance.tracked_today,
+      'tracked_week': instance.tracked_week,
+      'realtime_channel': instance.realtime_channel
+    };
+
+StateProject _$StateProjectFromJson(Map<String, dynamic> json) {
+  return StateProject()
+    ..id = json['id'] as String
+    ..name = json['name'] as String
+    ..customer = json['customer'] as String;
+}
+
+Map<String, dynamic> _$StateProjectToJson(StateProject instance) =>
+    <String, dynamic>{'id': instance.id, 'name': instance.name, 'customer': instance.customer};
+
+Entry _$EntryFromJson(Map<String, dynamic> json) {
+  return Entry()
+    ..id = json['id'] as int
+    ..task_id = json['task_id'] as int
+    ..task_name = json['task_name'] as String
+    ..project_id = json['project_id'] as int
+    ..project_name = json['project_name'] as String
+    ..customer_id = json['customer_id'] as int
+    ..customer_name = json['customer_name'] as String
+    ..ended_at = json['ended_at'] == null ? null : DateTime.parse(json['ended_at'] as String)
+    ..timestamp = json['timestamp'] as int
+    ..duration = json['duration'] as int
+    ..task_duration = json['task_duration'] as int;
+}
+
+Map<String, dynamic> _$EntryToJson(Entry instance) => <String, dynamic>{
+      'id': instance.id,
+      'task_id': instance.task_id,
+      'task_name': instance.task_name,
+      'project_id': instance.project_id,
+      'project_name': instance.project_name,
+      'customer_id': instance.customer_id,
+      'customer_name': instance.customer_name,
+      'ended_at': instance.ended_at?.toIso8601String(),
+      'timestamp': instance.timestamp,
+      'duration': instance.duration,
+      'task_duration': instance.task_duration
+    };

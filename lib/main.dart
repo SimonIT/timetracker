@@ -2,6 +2,7 @@ import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
+import 'package:time_tracker/data.dart';
 
 void main() => runApp(MyApp());
 
@@ -23,14 +24,14 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _user = TextEditingController();
   TextEditingController _password = TextEditingController();
 
-  Future<Map<String, dynamic>> _state = _getState();
+  Future<TrackerState> _state = _getState();
 
-  static Future<Map<String, dynamic>> _getState() async {
+  static Future<TrackerState> _getState() async {
     await api.authenticate();
-    return api.loadState();
+    return api.loadTrackerState();
   }
 
-  Future<Map<String, dynamic>> _refresh() {
+  Future<TrackerState> _refresh() {
     setState(() {
       _state = _getState();
     });
@@ -89,7 +90,7 @@ class _MyAppState extends State<MyApp> {
                 builder: (BuildContext context) {
                   return FutureBuilder(
                     future: _state,
-                    builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                    builder: (BuildContext context, AsyncSnapshot<TrackerState> snapshot) {
                       set(snapshot);
                       return Column(
                         children: <Widget>[
@@ -100,12 +101,12 @@ class _MyAppState extends State<MyApp> {
                                 child: Column(
                                   children: <Widget>[
                                     Text(
-                                      snapshot.hasData ? snapshot.data["task_name"] as String : "",
+                                      snapshot.hasData ? snapshot.data.task_name : "",
                                     ),
                                     Text(
-                                      snapshot.hasData && snapshot.data["project"] is Map
-                                          ? "${snapshot.data["project"]["customer"] as String}:"
-                                              " ${snapshot.data["project"]["name"] as String}"
+                                      snapshot.hasData && snapshot.data.project is StateProject
+                                          ? "${snapshot.data.project.customer}:"
+                                              " ${snapshot.data.project.name}"
                                           : "",
                                     ),
                                   ],
@@ -146,7 +147,7 @@ class _MyAppState extends State<MyApp> {
                 builder: (BuildContext context) {
                   return FutureBuilder(
                     future: _state,
-                    builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                    builder: (BuildContext context, AsyncSnapshot<TrackerState> snapshot) {
                       set(snapshot);
                       return ListView(
                         physics: ClampingScrollPhysics(),
@@ -384,7 +385,7 @@ class _MyAppState extends State<MyApp> {
                     ),
                     child: FutureBuilder(
                       future: _state,
-                      builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                      builder: (BuildContext context, AsyncSnapshot<TrackerState> snapshot) {
                         return ListView.builder(
                           physics: ClampingScrollPhysics(),
                           /*children: <Widget>[
@@ -431,20 +432,20 @@ class _MyAppState extends State<MyApp> {
                           ],*/
                           itemBuilder: (BuildContext context, int index) {
                             if (snapshot.hasData) {
-                              Map<String, dynamic> recent = (snapshot.data["recent_entries"] as List)[index];
+                              Entry recent = snapshot.data.recent_entries[index];
                               return RecentTasks(
-                                customer: recent["customer_name"] as String,
-                                project: recent["project_name"] as String,
-                                task: recent["task_name"] as String,
-                                duration: recent["task_duration"] as int,
+                                customer: recent.customer_name,
+                                project: recent.project_name,
+                                task: recent.task_name,
+                                duration: recent.task_duration,
                                 onPressed: () {
-                                  _project.text = recent["project_name"] as String;
-                                  _task.text = recent["task_name"] as String;
+                                  _project.text = recent.project_name;
+                                  _task.text = recent.task_name;
                                 },
                               );
                             }
                           },
-                          itemCount: snapshot.hasData ? (snapshot.data["recent_entries"] as List).length : 0,
+                          itemCount: snapshot.hasData ? snapshot.data.recent_entries.length : 0,
                         );
                       },
                     ),
@@ -526,19 +527,22 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void set(AsyncSnapshot<Map<String, dynamic>> snapshot) {
+  void set(AsyncSnapshot<TrackerState> snapshot) {
     if (snapshot.hasData) {
-      Map<String, dynamic> state = snapshot.data;
-      if (state["project"] is Map) {
-        _project.text = "${state["project"]["customer"] as String}: ${state["project"]["name"] as String}";
+      TrackerState state = snapshot.data;
+      if (state.status == "stopped") {
+        tracking = false;
       }
-      _task.text = state["task_name"] as String;
-      _comment.text = state["comment"] as String;
-      int startedMillis = int.parse(state["started_at"] as String);
+      if (state.project is StateProject) {
+        _project.text = "${state.project.customer}: ${state.project.name}";
+      }
+      _task.text = state.task_name;
+      _comment.text = state.comment;
+      int startedMillis = int.parse(state.started_at);
       _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
-      int endedMillis = int.parse(state["ended_at"] as String);
+      int endedMillis = int.parse(state.ended_at);
       _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
-      _paused = Duration(milliseconds: int.parse(state["paused_duration"] as String));
+      _paused = Duration(milliseconds: int.parse(state.paused_duration));
     }
   }
 }

@@ -79,13 +79,13 @@ Future<bool> loadCredentials() async {
   }
 }
 
-Future<Map<String, dynamic>> loadState() async {
+Future<TrackerState> loadTrackerState() async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
     http.Response result = await http.get(
       "${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken",
     );
     if (result.statusCode == 200) {
-      return jsonDecode(result.body);
+      return TrackerState.fromJson(jsonDecode(result.body));
     } else {
       throw Exception();
     }
