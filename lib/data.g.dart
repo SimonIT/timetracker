@@ -25,7 +25,8 @@ Project _$ProjectFromJson(Map<String, dynamic> json) {
     ..customer = json['customer'] == null ? null : Company.fromJson(json['customer'] as Map<String, dynamic>);
 }
 
-Map<String, dynamic> _$ProjectToJson(Project instance) => <String, dynamic>{
+Map<String, dynamic> _$ProjectToJson(Project instance) =>
+    <String, dynamic>{
       'budget_money': instance.budget_money,
       'budget_time': instance.budget_time,
       'budget_time_unit': instance.budget_time_unit,
@@ -85,7 +86,8 @@ Company _$CompanyFromJson(Map<String, dynamic> json) {
     ..website = json['website'] as String;
 }
 
-Map<String, dynamic> _$CompanyToJson(Company instance) => <String, dynamic>{
+Map<String, dynamic> _$CompanyToJson(Company instance) =>
+    <String, dynamic>{
       'bank_account_no': instance.bank_account_no,
       'bank_bic': instance.bank_bic,
       'bank_blz': instance.bank_blz,
@@ -138,7 +140,8 @@ Task _$TaskFromJson(Map<String, dynamic> json) {
     ..user_id = json['user_id'] as int;
 }
 
-Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
+Map<String, dynamic> _$TaskToJson(Task instance) =>
+    <String, dynamic>{
       'created_at': instance.created_at?.toIso8601String(),
       'id': instance.id,
       'name': instance.name,
@@ -161,7 +164,9 @@ TrackerState _$TrackerStateFromJson(Map<String, dynamic> json) {
     ..entry_date = json['entry_date'] as String
     ..comment = json['comment'] as String
     ..manual_time_change = json['manual_time_change'] as String
-    ..project = json['project'] == null || (json['project'] as String).isEmpty ? null : StateProject.fromJson(json['project'] as Map<String, dynamic>)
+    ..project = json['project'] == null || (json['project'] is String && (json['project'] as String).isEmpty)
+        ? null
+        : StateProject.fromJson(json['project'] as Map<String, dynamic>)
     ..recent_entries = (json['recent_entries'] as List)
         ?.map((e) => e == null ? null : Entry.fromJson(e as Map<String, dynamic>))
         ?.toList()
@@ -170,7 +175,8 @@ TrackerState _$TrackerStateFromJson(Map<String, dynamic> json) {
     ..realtime_channel = json['realtime_channel'] as String;
 }
 
-Map<String, dynamic> _$TrackerStateToJson(TrackerState instance) => <String, dynamic>{
+Map<String, dynamic> _$TrackerStateToJson(TrackerState instance) =>
+    <String, dynamic>{
       'uuid': instance.uuid,
       'status': instance.status,
       'task_name': instance.task_name,
@@ -213,7 +219,8 @@ Entry _$EntryFromJson(Map<String, dynamic> json) {
     ..task_duration = json['task_duration'] as int;
 }
 
-Map<String, dynamic> _$EntryToJson(Entry instance) => <String, dynamic>{
+Map<String, dynamic> _$EntryToJson(Entry instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'task_id': instance.task_id,
       'task_name': instance.task_name,
