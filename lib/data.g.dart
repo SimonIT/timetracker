@@ -161,7 +161,7 @@ TrackerState _$TrackerStateFromJson(Map<String, dynamic> json) {
     ..entry_date = json['entry_date'] as String
     ..comment = json['comment'] as String
     ..manual_time_change = json['manual_time_change'] as String
-    ..project = json['project'] == null ? null : StateProject.fromJson(json['project'] as Map<String, dynamic>)
+    ..project = json['project'] == null || (json['project'] as String).isEmpty ? null : StateProject.fromJson(json['project'] as Map<String, dynamic>)
     ..recent_entries = (json['recent_entries'] as List)
         ?.map((e) => e == null ? null : Entry.fromJson(e as Map<String, dynamic>))
         ?.toList()
