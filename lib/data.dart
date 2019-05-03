@@ -14,11 +14,17 @@ class Project {
   int customer_id;
   String description;
   int id;
+  String memento_content_type;
+  String memento_file_name;
+  int memento_file_size;
+  DateTime memento_updated_at;
   String name;
   String progress;
   String record_state;
   DateTime updated_at;
   Company customer;
+  List<Task> tasks;
+  List<User> users;
 
   Project();
 
@@ -150,4 +156,20 @@ class Entry {
   factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
 
   Map<String, dynamic> toJson() => _$EntryToJson(this);
+}
+
+@JsonSerializable()
+class User {
+  String first_name;
+  int id;
+  String last_name;
+  String role;
+  String full_name;
+  String role_f;
+
+  User();
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
 }

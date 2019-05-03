@@ -110,14 +110,31 @@ Future<List<Company>> loadCustomers() async {
   }
 }
 
-Future<List<Project>> loadProjects() async {
+Future<List<Project>> loadProjects({String searchPattern}) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    String url = "${baseUrl}projects.json?auth_token=$authToken";
+    url = searchPattern != null ? "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}" : url;
     http.Response result = await http.get(
-      "${baseUrl}projects.json?auth_token=$authToken",
+      url,
     );
     if (result.statusCode == 200) {
       Map projects = jsonDecode(result.body);
       return (projects as List).map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception();
+    }
+  } else {
+    return null;
+  }
+}
+
+Future<Project> loadProject(int id) async {
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    http.Response result = await http.get(
+      "${baseUrl}projects/$id.json?auth_token=$authToken",
+    );
+    if (result.statusCode == 200) {
+      return Project.fromJson(jsonDecode(result.body));
     } else {
       throw Exception();
     }

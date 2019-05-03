@@ -99,6 +99,7 @@ class _MyAppState extends State<MyApp> {
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
                                   children: <Widget>[
                                     Text(
                                       snapshot.hasData ? snapshot.data.task_name : "",
@@ -528,10 +529,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void set(AsyncSnapshot<TrackerState> snapshot) {
-    if (snapshot.hasData) {
+    if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
       TrackerState state = snapshot.data;
-      if (state.status == "stopped") {
-        tracking = false;
+      switch (state.status) {
+        case "running":
+          tracking = true;
+          break;
+        case "stopped":
+          tracking = false;
+          break;
       }
       if (state.project is StateProject) {
         _project.text = "${state.project.customer}: ${state.project.name}";
