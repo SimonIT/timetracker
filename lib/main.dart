@@ -13,6 +13,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool tracking = false;
+  bool userChange = false;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
   Duration _paused = Duration();
@@ -126,6 +127,7 @@ class _MyAppState extends State<MyApp> {
                           TrackingButton(
                             onPressed: () {
                               setState(() {
+                                this.userChange = true;
                                 this.tracking = !this.tracking;
                                 if (tracking) {
                                   _startDate = DateTime.now();
@@ -180,6 +182,9 @@ class _MyAppState extends State<MyApp> {
                               placeholder: "Aufgabe",
                               autocorrect: false,
                               maxLines: 1,
+                              onChanged: (String s) {
+                                userChange = true;
+                              },
                             ),
                           ),
                           Padding(
@@ -189,12 +194,20 @@ class _MyAppState extends State<MyApp> {
                               placeholder: "Kommentar",
                               maxLines: null,
                               keyboardType: TextInputType.multiline,
+                              onChanged: (String s) {
+                                userChange = true;
+                              },
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Container(
                               decoration: BoxDecoration(
+                                boxShadow: tracking
+                                    ? [
+                                        BoxShadow(color: Color.fromRGBO(209, 208, 203, 1)),
+                                      ]
+                                    : [],
                                 border: Border(
                                   top: BorderSide(
                                     color: CupertinoColors.lightBackgroundGray,
@@ -249,7 +262,10 @@ class _MyAppState extends State<MyApp> {
                                                     initialDateTime: _startDate,
                                                     use24hFormat: true,
                                                     onDateTimeChanged: (DateTime newDateTime) {
-                                                      setState(() => _startDate = newDateTime);
+                                                      setState(() {
+                                                        userChange = true;
+                                                        _startDate = newDateTime;
+                                                      });
                                                     },
                                                   ),
                                                 );
@@ -280,7 +296,10 @@ class _MyAppState extends State<MyApp> {
                                                     initialDateTime: _startDate,
                                                     use24hFormat: true,
                                                     onDateTimeChanged: (DateTime newDateTime) {
-                                                      setState(() => _startDate = newDateTime);
+                                                      setState(() {
+                                                        userChange = true;
+                                                        _startDate = newDateTime;
+                                                      });
                                                     },
                                                   ),
                                                 );
@@ -305,7 +324,10 @@ class _MyAppState extends State<MyApp> {
                                                     initialDateTime: _endDate,
                                                     use24hFormat: true,
                                                     onDateTimeChanged: (DateTime newDateTime) {
-                                                      setState(() => _endDate = newDateTime);
+                                                      setState(() {
+                                                        userChange = true;
+                                                        _endDate = newDateTime;
+                                                      });
                                                     },
                                                   ),
                                                 );
@@ -335,6 +357,7 @@ class _MyAppState extends State<MyApp> {
                                 TrackingButton(
                                   onPressed: () {
                                     setState(() {
+                                      this.userChange = true;
                                       this.tracking = !this.tracking;
                                       if (tracking) {
                                         _startDate = DateTime.now();
@@ -529,7 +552,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void set(AsyncSnapshot<TrackerState> snapshot) {
-    if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+    if (snapshot.hasData && snapshot.connectionState == ConnectionState.done && !userChange) {
       TrackerState state = snapshot.data;
       switch (state.status) {
         case "running":
@@ -548,7 +571,7 @@ class _MyAppState extends State<MyApp> {
       _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
       int endedMillis = int.parse(state.ended_at);
       _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
-      _paused = Duration(milliseconds: int.parse(state.paused_duration));
+      _paused = state.paused_duration != null ? Duration(milliseconds: int.parse(state.paused_duration)) : Duration();
     }
   }
 }
