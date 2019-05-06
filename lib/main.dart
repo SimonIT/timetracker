@@ -18,6 +18,8 @@ class _MyAppState extends State<MyApp> {
   DateTime _endDate = DateTime.now();
   Duration _paused = Duration();
 
+  TrackerState state;
+
   TextEditingController _project = TextEditingController();
   TextEditingController _task = TextEditingController();
   TextEditingController _comment = TextEditingController();
@@ -25,19 +27,35 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _user = TextEditingController();
   TextEditingController _password = TextEditingController();
 
-  Future<TrackerState> _state = _getState();
-
-  static Future<TrackerState> _getState() async {
-    await api.authenticate();
-    return api.loadTrackerState();
+  _MyAppState() {
+    _refresh();
   }
 
-  Future<TrackerState> _refresh() {
-    setState(() {
-      _state = _getState();
+  void _refresh() async {
+    await api.authenticate();
+    api.loadTrackerState().then((TrackerState state) {
+      setState(() {
+        this.state = state;
+        switch (state.status) {
+          case "running":
+            tracking = true;
+            break;
+          case "stopped":
+            tracking = false;
+            break;
+        }
+        if (state.project is StateProject) {
+          _project.text = "${state.project.customer}: ${state.project.name}";
+        }
+        _task.text = state.task_name;
+        _comment.text = state.comment;
+        int startedMillis = int.parse(state.started_at);
+        _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
+        int endedMillis = int.parse(state.ended_at);
+        _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
+        _paused = state.paused_duration != null ? Duration(milliseconds: int.parse(state.paused_duration)) : Duration();
+      });
     });
-
-    return _state;
   }
 
   @override
@@ -89,314 +107,302 @@ class _MyAppState extends State<MyApp> {
             case 0:
               return CupertinoTabView(
                 builder: (BuildContext context) {
-                  return FutureBuilder(
-                    future: _state,
-                    builder: (BuildContext context, AsyncSnapshot<TrackerState> snapshot) {
-                      set(snapshot);
-                      return Column(
+                  return Column(
+                    children: <Widget>[
+                      Row(
                         children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: <Widget>[
-                                    Text(
-                                      snapshot.hasData ? snapshot.data.task_name : "",
-                                    ),
-                                    Text(
-                                      snapshot.hasData && snapshot.data.project is StateProject
-                                          ? "${snapshot.data.project.customer}:"
-                                              " ${snapshot.data.project.name}"
-                                          : "",
-                                    ),
-                                  ],
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
+                                Text(
+                                  state != null ? state.task_name : "",
                                 ),
-                              ),
-                              Text(
-                                prettyDuration(
-                                  _endDate.difference(_startDate) - _paused,
-                                  abbreviated: true,
+                                Text(
+                                  state != null && state.project is StateProject
+                                      ? "${state.project.customer}:"
+                                          " ${state.project.name}"
+                                      : "",
                                 ),
-                                textScaleFactor: 2,
-                              )
-                            ],
-                            mainAxisAlignment: MainAxisAlignment.center,
+                              ],
+                            ),
                           ),
-                          TrackingButton(
-                            onPressed: () {
-                              setState(() {
-                                this.userChange = true;
-                                this.tracking = !this.tracking;
-                                if (tracking) {
-                                  _startDate = DateTime.now();
-                                } else {
-                                  _endDate = DateTime.now();
-                                }
-                              });
-                            },
-                            tracking: this.tracking,
-                          ),
+                          Text(
+                            prettyDuration(
+                              _endDate.difference(_startDate) - _paused,
+                              abbreviated: true,
+                            ),
+                            textScaleFactor: 2,
+                          )
                         ],
                         mainAxisAlignment: MainAxisAlignment.center,
-                      );
-                    },
+                      ),
+                      TrackingButton(
+                        onPressed: () {
+                          setState(() {
+                            this.userChange = true;
+                            this.tracking = !this.tracking;
+                            if (tracking) {
+                              _startDate = DateTime.now();
+                            } else {
+                              _endDate = DateTime.now();
+                            }
+                          });
+                        },
+                        tracking: this.tracking,
+                      ),
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.center,
                   );
                 },
               );
             case 1:
               return CupertinoTabView(
                 builder: (BuildContext context) {
-                  return FutureBuilder(
-                    future: _state,
-                    builder: (BuildContext context, AsyncSnapshot<TrackerState> snapshot) {
-                      set(snapshot);
-                      return ListView(
-                        physics: ClampingScrollPhysics(),
-                        children: <Widget>[
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "Zeiterfassung",
-                                textScaleFactor: 2,
+                  return ListView(
+                    physics: ClampingScrollPhysics(),
+                    children: <Widget>[
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            "Zeiterfassung",
+                            textScaleFactor: 2,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CupertinoTextField(
+                          controller: _project,
+                          clearButtonMode: OverlayVisibilityMode.editing,
+                          placeholder: "Kunde/Projekt",
+                          autocorrect: false,
+                          maxLines: 1,
+                          onChanged: (String text) {},
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CupertinoTextField(
+                          controller: _task,
+                          placeholder: "Aufgabe",
+                          autocorrect: false,
+                          maxLines: 1,
+                          onChanged: (String s) {
+                            userChange = true;
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CupertinoTextField(
+                          controller: _comment,
+                          placeholder: "Kommentar",
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
+                          onChanged: (String s) {
+                            userChange = true;
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            boxShadow: tracking
+                                ? [
+                              BoxShadow(color: Color.fromRGBO(209, 208, 203, 1)),
+                            ]
+                                : [],
+                            border: Border(
+                              top: BorderSide(
+                                color: CupertinoColors.lightBackgroundGray,
+                                style: BorderStyle.solid,
+                                width: 0.0,
+                              ),
+                              bottom: BorderSide(
+                                color: CupertinoColors.lightBackgroundGray,
+                                style: BorderStyle.solid,
+                                width: 0.0,
+                              ),
+                              left: BorderSide(
+                                color: CupertinoColors.lightBackgroundGray,
+                                style: BorderStyle.solid,
+                                width: 0.0,
+                              ),
+                              right: BorderSide(
+                                color: CupertinoColors.lightBackgroundGray,
+                                style: BorderStyle.solid,
+                                width: 0.0,
                               ),
                             ),
+                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CupertinoTextField(
-                              controller: _project,
-                              clearButtonMode: OverlayVisibilityMode.editing,
-                              placeholder: "Kunde/Projekt",
-                              autocorrect: false,
-                              maxLines: 1,
-                              onChanged: (String text) {},
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CupertinoTextField(
-                              controller: _task,
-                              placeholder: "Aufgabe",
-                              autocorrect: false,
-                              maxLines: 1,
-                              onChanged: (String s) {
-                                userChange = true;
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CupertinoTextField(
-                              controller: _comment,
-                              placeholder: "Kommentar",
-                              maxLines: null,
-                              keyboardType: TextInputType.multiline,
-                              onChanged: (String s) {
-                                userChange = true;
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                boxShadow: tracking
-                                    ? [
-                                        BoxShadow(color: Color.fromRGBO(209, 208, 203, 1)),
-                                      ]
-                                    : [],
-                                border: Border(
-                                  top: BorderSide(
-                                    color: CupertinoColors.lightBackgroundGray,
-                                    style: BorderStyle.solid,
-                                    width: 0.0,
-                                  ),
-                                  bottom: BorderSide(
-                                    color: CupertinoColors.lightBackgroundGray,
-                                    style: BorderStyle.solid,
-                                    width: 0.0,
-                                  ),
-                                  left: BorderSide(
-                                    color: CupertinoColors.lightBackgroundGray,
-                                    style: BorderStyle.solid,
-                                    width: 0.0,
-                                  ),
-                                  right: BorderSide(
-                                    color: CupertinoColors.lightBackgroundGray,
-                                    style: BorderStyle.solid,
-                                    width: 0.0,
-                                  ),
-                                ),
-                                borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        Icon(
-                                          IconData(
-                                            0xF2D1,
-                                            fontFamily: CupertinoIcons.iconFont,
-                                            fontPackage: CupertinoIcons.iconFontPackage,
-                                            matchTextDirection: true,
-                                          ),
-                                          color: CupertinoColors.white,
-                                        ),
-                                        GestureDetector(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                            child: Text(DateFormat("dd.MM.yyyy").format(_startDate)),
-                                          ),
-                                          onTap: () {
-                                            showCupertinoModalPopup<void>(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return _buildBottomPicker(
-                                                  CupertinoDatePicker(
-                                                    mode: CupertinoDatePickerMode.date,
-                                                    initialDateTime: _startDate,
-                                                    use24hFormat: true,
-                                                    onDateTimeChanged: (DateTime newDateTime) {
-                                                      setState(() {
-                                                        userChange = true;
-                                                        _startDate = newDateTime;
-                                                      });
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: <Widget>[
-                                        Icon(
-                                          CupertinoIcons.time_solid,
-                                          color: CupertinoColors.white,
-                                        ),
-                                        GestureDetector(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                            child: Text(DateFormat("HH:mm").format(_startDate)),
-                                          ),
-                                          onTap: () {
-                                            showCupertinoModalPopup<void>(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return _buildBottomPicker(
-                                                  CupertinoDatePicker(
-                                                    mode: CupertinoDatePickerMode.time,
-                                                    initialDateTime: _startDate,
-                                                    use24hFormat: true,
-                                                    onDateTimeChanged: (DateTime newDateTime) {
-                                                      setState(() {
-                                                        userChange = true;
-                                                        _startDate = newDateTime;
-                                                      });
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                          child: Text("bis"),
-                                        ),
-                                        GestureDetector(
-                                          child: Text(DateFormat("HH:mm").format(_endDate)),
-                                          onTap: () {
-                                            showCupertinoModalPopup<void>(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return _buildBottomPicker(
-                                                  CupertinoDatePicker(
-                                                    mode: CupertinoDatePickerMode.time,
-                                                    minimumDate: _startDate,
-                                                    initialDateTime: _endDate,
-                                                    use24hFormat: true,
-                                                    onDateTimeChanged: (DateTime newDateTime) {
-                                                      setState(() {
-                                                        userChange = true;
-                                                        _endDate = newDateTime;
-                                                      });
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
+                          child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
                               children: <Widget>[
-                                Text(
-                                  prettyDuration(
-                                    _endDate.difference(_startDate) - _paused,
-                                    abbreviated: true,
-                                  ),
-                                  textScaleFactor: 1.5,
+                                Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      IconData(
+                                        0xF2D1,
+                                        fontFamily: CupertinoIcons.iconFont,
+                                        fontPackage: CupertinoIcons.iconFontPackage,
+                                        matchTextDirection: true,
+                                      ),
+                                      color: CupertinoColors.white,
+                                    ),
+                                    GestureDetector(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Text(DateFormat("dd.MM.yyyy").format(_startDate)),
+                                      ),
+                                      onTap: () {
+                                        showCupertinoModalPopup<void>(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return _buildBottomPicker(
+                                              CupertinoDatePicker(
+                                                mode: CupertinoDatePickerMode.date,
+                                                initialDateTime: _startDate,
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newDateTime) {
+                                                  setState(() {
+                                                    userChange = true;
+                                                    _startDate = newDateTime;
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
-                                TrackingButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      this.userChange = true;
-                                      this.tracking = !this.tracking;
-                                      if (tracking) {
-                                        _startDate = DateTime.now();
-                                      } else {
-                                        _endDate = DateTime.now();
-                                      }
-                                    });
-                                  },
-                                  tracking: this.tracking,
+                                Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      CupertinoIcons.time_solid,
+                                      color: CupertinoColors.white,
+                                    ),
+                                    GestureDetector(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Text(DateFormat("HH:mm").format(_startDate)),
+                                      ),
+                                      onTap: () {
+                                        showCupertinoModalPopup<void>(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return _buildBottomPicker(
+                                              CupertinoDatePicker(
+                                                mode: CupertinoDatePickerMode.time,
+                                                initialDateTime: _startDate,
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newDateTime) {
+                                                  setState(() {
+                                                    userChange = true;
+                                                    _startDate = newDateTime;
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Text("bis"),
+                                    ),
+                                    GestureDetector(
+                                      child: Text(DateFormat("HH:mm").format(_endDate)),
+                                      onTap: () {
+                                        showCupertinoModalPopup<void>(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return _buildBottomPicker(
+                                              CupertinoDatePicker(
+                                                mode: CupertinoDatePickerMode.time,
+                                                minimumDate: _startDate,
+                                                initialDateTime: _endDate,
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newDateTime) {
+                                                  setState(() {
+                                                    userChange = true;
+                                                    _endDate = newDateTime;
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CupertinoButton.filled(
-                              child: Text("Buchen"),
-                              onPressed: () {},
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              prettyDuration(
+                                _endDate.difference(_startDate) - _paused,
+                                abbreviated: true,
+                              ),
+                              textScaleFactor: 1.5,
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CupertinoButton.filled(
-                              child: Text("Verwerfen"),
+                            TrackingButton(
                               onPressed: () {
                                 setState(() {
-                                  _project.clear();
-                                  _task.clear();
-                                  _comment.clear();
-                                  _startDate = DateTime.now();
-                                  _endDate = DateTime.now();
+                                  this.userChange = true;
+                                  this.tracking = !this.tracking;
+                                  if (tracking) {
+                                    _startDate = DateTime.now();
+                                  } else {
+                                    _endDate = DateTime.now();
+                                  }
                                 });
                               },
+                              tracking: this.tracking,
                             ),
-                          )
-                        ],
-                      );
-                    },
+                          ],
+                          mainAxisAlignment: MainAxisAlignment.center,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CupertinoButton.filled(
+                          child: Text("Buchen"),
+                          onPressed: () {},
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CupertinoButton.filled(
+                          child: Text("Verwerfen"),
+                          onPressed: () {
+                            setState(() {
+                              _project.clear();
+                              _task.clear();
+                              _comment.clear();
+                              _startDate = DateTime.now();
+                              _endDate = DateTime.now();
+                            });
+                          },
+                        ),
+                      )
+                    ],
                   );
                 },
               );
@@ -407,12 +413,9 @@ class _MyAppState extends State<MyApp> {
                     padding: const EdgeInsets.symmetric(
                       vertical: 16.0,
                     ),
-                    child: FutureBuilder(
-                      future: _state,
-                      builder: (BuildContext context, AsyncSnapshot<TrackerState> snapshot) {
-                        return ListView.builder(
-                          physics: ClampingScrollPhysics(),
-                          /*children: <Widget>[
+                    child: ListView.builder(
+                      physics: ClampingScrollPhysics(),
+                      /*children: <Widget>[
                             Container(
                               decoration: BoxDecoration(
                                 border: Border(
@@ -454,24 +457,24 @@ class _MyAppState extends State<MyApp> {
                               ),
                             ),
                           ],*/
-                          itemBuilder: (BuildContext context, int index) {
-                            if (snapshot.hasData) {
-                              Entry recent = snapshot.data.recent_entries[index];
-                              return RecentTasks(
-                                customer: recent.customer_name,
-                                project: recent.project_name,
-                                task: recent.task_name,
-                                duration: recent.task_duration,
-                                onPressed: () {
-                                  _project.text = recent.project_name;
-                                  _task.text = recent.task_name;
-                                },
-                              );
-                            }
-                          },
-                          itemCount: snapshot.hasData ? snapshot.data.recent_entries.length : 0,
-                        );
+                      itemBuilder: (BuildContext context, int index) {
+                        if (state != null) {
+                          Entry recent = state.recent_entries[index];
+                          return RecentTasks(
+                            customer: recent.customer_name,
+                            project: recent.project_name,
+                            task: recent.task_name,
+                            duration: recent.task_duration,
+                            onPressed: () {
+                              _project.text = recent.project_name;
+                              _task.text = recent.task_name;
+                            },
+                          );
+                        } else {
+                          return Container();
+                        }
                       },
+                      itemCount: state != null ? state.recent_entries.length : 0,
                     ),
                   );
                 },
@@ -549,30 +552,6 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
-  }
-
-  void set(AsyncSnapshot<TrackerState> snapshot) {
-    if (snapshot.hasData && snapshot.connectionState == ConnectionState.done && !userChange) {
-      TrackerState state = snapshot.data;
-      switch (state.status) {
-        case "running":
-          tracking = true;
-          break;
-        case "stopped":
-          tracking = false;
-          break;
-      }
-      if (state.project is StateProject) {
-        _project.text = "${state.project.customer}: ${state.project.name}";
-      }
-      _task.text = state.task_name;
-      _comment.text = state.comment;
-      int startedMillis = int.parse(state.started_at);
-      _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
-      int endedMillis = int.parse(state.ended_at);
-      _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
-      _paused = state.paused_duration != null ? Duration(milliseconds: int.parse(state.paused_duration)) : Duration();
-    }
   }
 }
 
