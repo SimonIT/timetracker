@@ -100,8 +100,7 @@ Future<List<Company>> loadCustomers() async {
       "${baseUrl}contact/companies.json?auth_token=$authToken",
     );
     if (result.statusCode == 200) {
-      Map companies = jsonDecode(result.body);
-      return (companies as List).map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>)).toList();
+      return (jsonDecode(result.body) as List).map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>)).toList();
     } else {
       throw Exception();
     }
@@ -118,8 +117,7 @@ Future<List<Project>> loadProjects({String searchPattern}) async {
       url,
     );
     if (result.statusCode == 200) {
-      Map projects = jsonDecode(result.body);
-      return (projects as List).map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>)).toList();
+      return (jsonDecode(result.body) as List).map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>)).toList();
     } else {
       throw Exception();
     }
@@ -149,8 +147,7 @@ Future<List<Task>> loadTasks() async {
       "${baseUrl}tracker/tasks.json?auth_token=$authToken",
     );
     if (result.statusCode == 200) {
-      Map tasks = jsonDecode(result.body);
-      return (tasks as List).map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>)).toList();
+      return (jsonDecode(result.body) as List).map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>)).toList();
     } else {
       throw Exception();
     }
