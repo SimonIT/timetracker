@@ -13,7 +13,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool userChange = false;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
   Duration _paused = Duration();
@@ -53,6 +52,8 @@ class _MyAppState extends State<MyApp> {
   void updateInputs() {
     if (state.project is StateProject) {
       _project.text = "${state.project.customer}: ${state.project.name}";
+    } else {
+      _project.text = "";
     }
     _task.text = state.task_name;
     _comment.text = state.comment;
@@ -141,12 +142,13 @@ class _MyAppState extends State<MyApp> {
                       TrackingButton(
                         onPressed: () {
                           setState(() {
-                            this.userChange = true;
-                            state.setTracking(!state.isTracking());
-                            if (state.isTracking()) {
-                              _startDate = DateTime.now();
-                            } else {
-                              _endDate = DateTime.now();
+                            if (state != null) {
+                              state.setTracking(!state.isTracking());
+                              if (state.isTracking()) {
+                                _startDate = DateTime.now();
+                              } else {
+                                _endDate = DateTime.now();
+                              }
                             }
                           });
                         },
@@ -176,7 +178,7 @@ class _MyAppState extends State<MyApp> {
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoTypeAheadField(
                           textFieldConfiguration: CupertinoTextFieldConfiguration(
-                            enabled: state.project == null,
+                            enabled: state == null ? true : state.project == null,
                             controller: _project,
                             clearButtonMode: OverlayVisibilityMode.editing,
                             placeholder: "Kunde/Projekt",
@@ -199,15 +201,15 @@ class _MyAppState extends State<MyApp> {
                           },
                           onSuggestionSelected: (Project suggestion) {
                             if (state != null) {
-                              if (state.project == null) {
-                                state.project = StateProject();
-                              }
                               setState(() {
+                                if (state.project == null) {
+                                  state.project = StateProject();
+                                }
                                 state.project.id = suggestion.id.toString();
                                 state.project.name = suggestion.name;
                                 state.project.customer = suggestion.customer.name;
+                                updateInputs();
                               });
-                              updateInputs();
                             }
                           },
                           suggestionsCallback: (String pattern) async {
@@ -222,9 +224,6 @@ class _MyAppState extends State<MyApp> {
                           placeholder: "Aufgabe",
                           autocorrect: false,
                           maxLines: 1,
-                          onChanged: (String s) {
-                            userChange = true;
-                          },
                         ),
                       ),
                       Padding(
@@ -234,9 +233,6 @@ class _MyAppState extends State<MyApp> {
                           placeholder: "Kommentar",
                           maxLines: null,
                           keyboardType: TextInputType.multiline,
-                          onChanged: (String s) {
-                            userChange = true;
-                          },
                         ),
                       ),
                       Padding(
@@ -293,24 +289,25 @@ class _MyAppState extends State<MyApp> {
                                         child: Text(DateFormat("dd.MM.yyyy").format(_startDate)),
                                       ),
                                       onTap: () {
-                                        showCupertinoModalPopup<void>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return _buildBottomPicker(
-                                              CupertinoDatePicker(
-                                                mode: CupertinoDatePickerMode.date,
-                                                initialDateTime: _startDate,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newDateTime) {
-                                                  setState(() {
-                                                    userChange = true;
-                                                    _startDate = newDateTime;
-                                                  });
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
+                                        if (state != null && !state.isTracking()) {
+                                          showCupertinoModalPopup<void>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return _buildBottomPicker(
+                                                CupertinoDatePicker(
+                                                  mode: CupertinoDatePickerMode.date,
+                                                  initialDateTime: _startDate,
+                                                  use24hFormat: true,
+                                                  onDateTimeChanged: (DateTime newDateTime) {
+                                                    setState(() {
+                                                      _startDate = newDateTime;
+                                                    });
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
                                       },
                                     ),
                                   ],
@@ -327,24 +324,25 @@ class _MyAppState extends State<MyApp> {
                                         child: Text(DateFormat("HH:mm").format(_startDate)),
                                       ),
                                       onTap: () {
-                                        showCupertinoModalPopup<void>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return _buildBottomPicker(
-                                              CupertinoDatePicker(
-                                                mode: CupertinoDatePickerMode.time,
-                                                initialDateTime: _startDate,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newDateTime) {
-                                                  setState(() {
-                                                    userChange = true;
-                                                    _startDate = newDateTime;
-                                                  });
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
+                                        if (state != null && !state.isTracking()) {
+                                          showCupertinoModalPopup<void>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return _buildBottomPicker(
+                                                CupertinoDatePicker(
+                                                  mode: CupertinoDatePickerMode.time,
+                                                  initialDateTime: _startDate,
+                                                  use24hFormat: true,
+                                                  onDateTimeChanged: (DateTime newDateTime) {
+                                                    setState(() {
+                                                      _startDate = newDateTime;
+                                                    });
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
                                       },
                                     ),
                                     Padding(
@@ -354,25 +352,26 @@ class _MyAppState extends State<MyApp> {
                                     GestureDetector(
                                       child: Text(DateFormat("HH:mm").format(_endDate)),
                                       onTap: () {
-                                        showCupertinoModalPopup<void>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return _buildBottomPicker(
-                                              CupertinoDatePicker(
-                                                mode: CupertinoDatePickerMode.time,
-                                                minimumDate: _startDate,
-                                                initialDateTime: _endDate,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newDateTime) {
-                                                  setState(() {
-                                                    userChange = true;
-                                                    _endDate = newDateTime;
-                                                  });
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
+                                        if (state != null && !state.isTracking()) {
+                                          showCupertinoModalPopup<void>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return _buildBottomPicker(
+                                                CupertinoDatePicker(
+                                                  mode: CupertinoDatePickerMode.time,
+                                                  minimumDate: _startDate,
+                                                  initialDateTime: _endDate,
+                                                  use24hFormat: true,
+                                                  onDateTimeChanged: (DateTime newDateTime) {
+                                                    setState(() {
+                                                      _endDate = newDateTime;
+                                                    });
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
                                       },
                                     ),
                                   ],
@@ -397,7 +396,6 @@ class _MyAppState extends State<MyApp> {
                             TrackingButton(
                               onPressed: () {
                                 setState(() {
-                                  this.userChange = true;
                                   if (state != null) {
                                     state.setTracking(!state.isTracking());
                                     if (state.isTracking()) {
@@ -428,11 +426,11 @@ class _MyAppState extends State<MyApp> {
                           onPressed: () {
                             setState(() {
                               state.project = null;
-                              _project.clear();
-                              _task.clear();
-                              _comment.clear();
+                              state.task_name = "";
+                              state.comment = "";
                               _startDate = DateTime.now();
                               _endDate = DateTime.now();
+                              updateInputs();
                             });
                           },
                         ),
@@ -501,8 +499,16 @@ class _MyAppState extends State<MyApp> {
                             task: recent.task_name,
                             duration: recent.task_duration,
                             onPressed: () {
-                              _project.text = recent.project_name;
-                              _task.text = recent.task_name;
+                              setState(() {
+                                if (state.project == null) {
+                                  state.project = StateProject();
+                                }
+                                state.project.id = recent.id.toString();
+                                state.project.name = recent.project_name;
+                                state.project.customer = recent.customer_name;
+                                state.task_name = recent.task_name;
+                                updateInputs();
+                              });
                             },
                           );
                         } else {
