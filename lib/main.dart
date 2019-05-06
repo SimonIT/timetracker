@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> {
       theme: CupertinoThemeData(
         primaryColor: Color.fromRGBO(185, 213, 222, 1),
         primaryContrastingColor: Color.fromRGBO(0, 59, 78, 1),
-        barBackgroundColor: Color.fromRGBO(0, 59, 78, 1),
+        // barBackgroundColor: Color.fromRGBO(0, 59, 78, 1), // closes keyboard immediately
         textTheme: CupertinoTextThemeData(
           textStyle: TextStyle(
             color: CupertinoColors.white,
