@@ -34,19 +34,22 @@ class _MyAppState extends State<MyApp> {
   void _refresh() async {
     await api.authenticate();
     api.loadTrackerState().then((TrackerState state) {
-      setState(() {
-        this.state = state;
-        if (state.project is StateProject) {
-          _project.text = "${state.project.customer}: ${state.project.name}";
-        }
-        _task.text = state.task_name;
-        _comment.text = state.comment;
-        int startedMillis = int.parse(state.started_at);
-        _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
-        int endedMillis = int.parse(state.ended_at);
-        _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
-        _paused = state.paused_duration != null ? Duration(milliseconds: int.parse(state.paused_duration)) : Duration();
-      });
+      if (state != null) {
+        setState(() {
+          this.state = state;
+          if (state.project is StateProject) {
+            _project.text = "${state.project.customer}: ${state.project.name}";
+          }
+          _task.text = state.task_name;
+          _comment.text = state.comment;
+          int startedMillis = int.parse(state.started_at);
+          _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
+          int endedMillis = int.parse(state.ended_at);
+          _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
+          _paused =
+              state.paused_duration != null ? Duration(milliseconds: int.parse(state.paused_duration)) : Duration();
+        });
+      }
     });
   }
 
@@ -82,7 +85,7 @@ class _MyAppState extends State<MyApp> {
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.pen),
-              title:  Text('Zeiterfassung'),
+              title: Text('Zeiterfassung'),
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.clock),
