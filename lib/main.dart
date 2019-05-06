@@ -1,5 +1,6 @@
 import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
 import 'package:time_tracker/data.dart';
@@ -37,11 +38,7 @@ class _MyAppState extends State<MyApp> {
       if (state != null) {
         setState(() {
           this.state = state;
-          if (state.project is StateProject) {
-            _project.text = "${state.project.customer}: ${state.project.name}";
-          }
-          _task.text = state.task_name;
-          _comment.text = state.comment;
+          updateInputs();
           int startedMillis = int.parse(state.started_at);
           _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
           int endedMillis = int.parse(state.ended_at);
@@ -51,6 +48,14 @@ class _MyAppState extends State<MyApp> {
         });
       }
     });
+  }
+
+  void updateInputs() {
+    if (state.project is StateProject) {
+      _project.text = "${state.project.customer}: ${state.project.name}";
+    }
+    _task.text = state.task_name;
+    _comment.text = state.comment;
   }
 
   @override
@@ -169,13 +174,45 @@ class _MyAppState extends State<MyApp> {
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: CupertinoTextField(
-                          controller: _project,
-                          clearButtonMode: OverlayVisibilityMode.editing,
-                          placeholder: "Kunde/Projekt",
-                          autocorrect: false,
-                          maxLines: 1,
-                          onChanged: (String text) {},
+                        child: CupertinoTypeAheadField(
+                          textFieldConfiguration: CupertinoTextFieldConfiguration(
+                            enabled: state.project == null,
+                            controller: _project,
+                            clearButtonMode: OverlayVisibilityMode.editing,
+                            placeholder: "Kunde/Projekt",
+                            autocorrect: false,
+                            maxLines: 1,
+                          ),
+                          itemBuilder: (BuildContext context, Project itemData) {
+                            return Container(
+                              child: Container(
+                                color: CupertinoTheme.of(context).primaryColor,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: Text(
+                                    "${itemData.customer.name}: ${itemData.name}",
+                                    style: TextStyle(color: CupertinoColors.black),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          onSuggestionSelected: (Project suggestion) {
+                            if (state != null) {
+                              if (state.project == null) {
+                                state.project = StateProject();
+                              }
+                              setState(() {
+                                state.project.id = suggestion.id.toString();
+                                state.project.name = suggestion.name;
+                                state.project.customer = suggestion.customer.name;
+                              });
+                              updateInputs();
+                            }
+                          },
+                          suggestionsCallback: (String pattern) async {
+                            return await api.loadProjects(searchPattern: pattern);
+                          },
                         ),
                       ),
                       Padding(
@@ -390,6 +427,7 @@ class _MyAppState extends State<MyApp> {
                           child: Text("Verwerfen"),
                           onPressed: () {
                             setState(() {
+                              state.project = null;
                               _project.clear();
                               _task.clear();
                               _comment.clear();
