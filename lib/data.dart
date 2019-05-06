@@ -119,6 +119,18 @@ class TrackerState {
 
   TrackerState();
 
+  setTracking(bool state) {
+    if (state) {
+      this.status = "running";
+    } else {
+      this.status = "stopped";
+    }
+  }
+
+  bool isTracking() {
+    return this.status == "running";
+  }
+
   factory TrackerState.fromJson(Map<String, dynamic> json) => _$TrackerStateFromJson(json);
 
   Map<String, dynamic> toJson() => _$TrackerStateToJson(this);

@@ -12,13 +12,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool tracking = false;
   bool userChange = false;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
   Duration _paused = Duration();
 
   TrackerState state;
+  Project currentProject;
 
   TextEditingController _project = TextEditingController();
   TextEditingController _task = TextEditingController();
@@ -36,14 +36,6 @@ class _MyAppState extends State<MyApp> {
     api.loadTrackerState().then((TrackerState state) {
       setState(() {
         this.state = state;
-        switch (state.status) {
-          case "running":
-            tracking = true;
-            break;
-          case "stopped":
-            tracking = false;
-            break;
-        }
         if (state.project is StateProject) {
           _project.text = "${state.project.customer}: ${state.project.name}";
         }
@@ -90,7 +82,7 @@ class _MyAppState extends State<MyApp> {
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.pen),
-              title: Text('Zeiterfassung'),
+              title:  Text('Zeiterfassung'),
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.clock),
@@ -142,15 +134,15 @@ class _MyAppState extends State<MyApp> {
                         onPressed: () {
                           setState(() {
                             this.userChange = true;
-                            this.tracking = !this.tracking;
-                            if (tracking) {
+                            state.setTracking(!state.isTracking());
+                            if (state.isTracking()) {
                               _startDate = DateTime.now();
                             } else {
                               _endDate = DateTime.now();
                             }
                           });
                         },
-                        tracking: this.tracking,
+                        tracking: state != null ? state.isTracking() : false,
                       ),
                     ],
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -211,10 +203,10 @@ class _MyAppState extends State<MyApp> {
                         padding: const EdgeInsets.all(8.0),
                         child: Container(
                           decoration: BoxDecoration(
-                            boxShadow: tracking
+                            boxShadow: state != null && state.isTracking()
                                 ? [
-                              BoxShadow(color: Color.fromRGBO(209, 208, 203, 1)),
-                            ]
+                                    BoxShadow(color: Color.fromRGBO(209, 208, 203, 1)),
+                                  ]
                                 : [],
                             border: Border(
                               top: BorderSide(
@@ -366,15 +358,17 @@ class _MyAppState extends State<MyApp> {
                               onPressed: () {
                                 setState(() {
                                   this.userChange = true;
-                                  this.tracking = !this.tracking;
-                                  if (tracking) {
-                                    _startDate = DateTime.now();
-                                  } else {
-                                    _endDate = DateTime.now();
+                                  if (state != null) {
+                                    state.setTracking(!state.isTracking());
+                                    if (state.isTracking()) {
+                                      _startDate = DateTime.now();
+                                    } else {
+                                      _endDate = DateTime.now();
+                                    }
                                   }
                                 });
                               },
-                              tracking: this.tracking,
+                              tracking: state != null ? state.isTracking() : false,
                             ),
                           ],
                           mainAxisAlignment: MainAxisAlignment.center,
