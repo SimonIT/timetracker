@@ -14,7 +14,7 @@ String userName;
 String tenantName;
 
 String baseUrl;
-//String api_domain = ".odacer.com:3000";  // DEV
+//String apiDomain = ".odacer.com:3000";  // DEV
 String apiDomain = ".papierkram.de"; // LIVE
 String apiPath = "/api/v1/";
 
@@ -91,6 +91,34 @@ Future<TrackerState> loadTrackerState() async {
     }
   } else {
     return null;
+  }
+}
+
+setTrackerState(TrackerState state) async {
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    http.Response result = await http.post(
+      "${baseUrl}tracker/time_entries/timer_state.json",
+      headers: headers,
+      body: Uri.encodeQueryComponent("auth_token=$authToken"
+          "&timer_state[uuid]=${state.uuid}"
+          "&timer_state[status]=${state.status}"
+          "&timer_state[task_name]=${state.task_name}"
+          "&timer_state[started_at]=${state.started_at}"
+          "&timer_state[stopped_at]=${state.stopped_at}"
+          "&timer_state[ended_at]=${state.stopped_at}"
+          "&timer_state[paused_duration]=${state.paused_duration}"
+          "&timer_state[entry_date]=${state.entry_date}"
+          "&timer_state[comment]=${state.comment}"
+          "&timer_state[manual_time_change]=${state.manual_time_change}"
+          "&timer_state[project][id]=${state.project.id}"
+          "&timer_state[project][name]=${state.project.name}"
+          "&timer_state[project][customer]=${state.project.customer}"),
+    );
+    if (result.statusCode == 200) {
+      print(result.body);
+    } else {
+      throw Exception();
+    }
   }
 }
 

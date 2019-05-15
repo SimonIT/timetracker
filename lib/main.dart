@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
@@ -129,13 +131,7 @@ class _MyAppState extends State<MyApp> {
                               ],
                             ),
                           ),
-                          Text(
-                            prettyDuration(
-                              _endDate.difference(_startDate) - _paused,
-                              abbreviated: true,
-                            ),
-                            textScaleFactor: 2,
-                          )
+                          TrackingLabel(state, _startDate, _endDate, _paused),
                         ],
                         mainAxisAlignment: MainAxisAlignment.center,
                       ),
@@ -146,6 +142,7 @@ class _MyAppState extends State<MyApp> {
                               state.setTracking(!state.isTracking());
                               if (state.isTracking()) {
                                 _startDate = DateTime.now();
+                                _endDate = null;
                               } else {
                                 _endDate = DateTime.now();
                               }
@@ -350,7 +347,7 @@ class _MyAppState extends State<MyApp> {
                                       child: Text("bis"),
                                     ),
                                     GestureDetector(
-                                      child: Text(DateFormat("HH:mm").format(_endDate)),
+                                      child: Text(_endDate != null ? DateFormat("HH:mm").format(_endDate) : ""),
                                       onTap: () {
                                         if (state != null && !state.isTracking()) {
                                           showCupertinoModalPopup<void>(
@@ -386,13 +383,7 @@ class _MyAppState extends State<MyApp> {
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
                           children: <Widget>[
-                            Text(
-                              prettyDuration(
-                                _endDate.difference(_startDate) - _paused,
-                                abbreviated: true,
-                              ),
-                              textScaleFactor: 1.5,
-                            ),
+                            TrackingLabel(state, _startDate, _endDate, _paused),
                             TrackingButton(
                               onPressed: () {
                                 setState(() {
@@ -400,6 +391,7 @@ class _MyAppState extends State<MyApp> {
                                     state.setTracking(!state.isTracking());
                                     if (state.isTracking()) {
                                       _startDate = DateTime.now();
+                                      _endDate = null;
                                     } else {
                                       _endDate = DateTime.now();
                                     }
@@ -672,6 +664,45 @@ class TrackingButton extends StatelessWidget {
         onPressed: onPressed,
         color: tracking ? Color.fromRGBO(218, 78, 73, 1) : Color.fromRGBO(91, 182, 91, 1),
       ),
+    );
+  }
+}
+
+class TrackingLabel extends StatefulWidget {
+  final TrackerState state;
+  final DateTime _startDate;
+  final DateTime _endDate;
+  final Duration _paused;
+
+  const TrackingLabel(this.state, this._startDate, this._endDate, this._paused, {Key key}) : super(key: key);
+
+  @override
+  _TrackingLabelState createState() => _TrackingLabelState();
+}
+
+class _TrackingLabelState extends State<TrackingLabel> {
+  Duration d = Duration();
+
+  _TrackingLabelState() {
+    Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      setState(() {
+        if (widget.state != null && widget.state.isTracking()) {
+          d = DateTime.now().difference(widget._startDate) - widget._paused;
+        } else {
+          d = widget._endDate.difference(widget._startDate) - widget._paused;
+        }
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      prettyDuration(
+        d,
+        abbreviated: true,
+      ),
+      textScaleFactor: 1.5,
     );
   }
 }
