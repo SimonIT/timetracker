@@ -99,20 +99,20 @@ setTrackerState(TrackerState state) async {
     http.Response result = await http.post(
       "${baseUrl}tracker/time_entries/timer_state.json",
       headers: headers,
-      body: Uri.encodeQueryComponent("auth_token=$authToken"
-          "&timer_state[uuid]=${state.uuid}"
-          "&timer_state[status]=${state.status}"
-          "&timer_state[task_name]=${state.task_name}"
-          "&timer_state[started_at]=${state.started_at}"
-          "&timer_state[stopped_at]=${state.stopped_at}"
-          "&timer_state[ended_at]=${state.stopped_at}"
-          "&timer_state[paused_duration]=${state.paused_duration}"
-          "&timer_state[entry_date]=${state.entry_date}"
-          "&timer_state[comment]=${state.comment}"
-          "&timer_state[manual_time_change]=${state.manual_time_change}"
-          "&timer_state[project][id]=${state.project.id}"
-          "&timer_state[project][name]=${state.project.name}"
-          "&timer_state[project][customer]=${state.project.customer}"),
+      body: "auth_token=$authToken"
+          "&timer_state%5Buuid%5D=${state.uuid}"
+          "&timer_state%5Bstatus%5D=${state.status}"
+          "&timer_state%5Btask_name%5D=${Uri.encodeQueryComponent(state.task_name)}"
+          "&timer_state%5Bstarted_at%5D=${state.started_at}"
+          "&timer_state%5Bstopped_at%5D=${state.stopped_at}"
+          "&timer_state%5Bended_at%5D=${state.stopped_at}"
+          "&timer_state%5Bpaused_duration%5D=${state.paused_duration}"
+          "&timer_state%5Bentry_date%5D=${state.entry_date}"
+          "&timer_state%5Bcomment%5D=${Uri.encodeQueryComponent(state.comment)}"
+          "&timer_state%5Bmanual_time_change%5D=${state.manual_time_change}"
+          "&timer_state%5Bproject%5D%5Bid%5D=${state.project.id}"
+          "&timer_state%5Bproject%5D%5Bname%5D=${Uri.encodeQueryComponent(state.project.name)}"
+          "&timer_state%5Bproject%5D%5Bcustomer%5D=${Uri.encodeQueryComponent(state.project.customer)}",
     );
     if (result.statusCode == 200) {
       print(result.body);
