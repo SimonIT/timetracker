@@ -19,7 +19,7 @@ dependencies:
   flutter_typeahead:
     git:
       url: git://github.com/KaYBlitZ/flutter_typeahead.git
-      ref: develop
+      ref: add_cupertino
 
 dev_dependencies:
   flutter_test:

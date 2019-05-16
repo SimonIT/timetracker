@@ -199,8 +199,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: develop
-      resolved-ref: "35c53768ec403664f74a6647ebe7ea2611fb0dfa"
+      ref: add_cupertino
+      resolved-ref: "099ba0046f814dd407c978d9568f2e92e99c3c33"
       url: "git://github.com/KaYBlitZ/flutter_typeahead.git"
     source: git
     version: "1.5.0"
@@ -259,7 +259,7 @@ packages:
       name: image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.9"
+    version: "2.1.0"
   intl:
     dependency: "direct main"
     description:

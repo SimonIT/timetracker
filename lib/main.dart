@@ -15,8 +15,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now();
+  DateTime _startDate;
+  DateTime _endDate;
   Duration _paused = Duration();
 
   TrackerState state;
@@ -41,9 +41,9 @@ class _MyAppState extends State<MyApp> {
           this.state = state;
           updateInputs();
           int startedMillis = int.parse(state.started_at);
-          _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
+          _startDate = startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : null;
           int endedMillis = int.parse(state.ended_at);
-          _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
+          _endDate = endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : null;
           _paused =
               state.paused_duration != null ? Duration(milliseconds: int.parse(state.paused_duration)) : Duration();
         });
@@ -141,7 +141,11 @@ class _MyAppState extends State<MyApp> {
                             if (state != null) {
                               state.setTracking(!state.isTracking());
                               if (state.isTracking()) {
-                                _startDate = DateTime.now();
+                                if (_startDate == null) {
+                                  _startDate = DateTime.now();
+                                } else {
+                                  _paused += DateTime.now().difference(_endDate);
+                                }
                                 _endDate = null;
                               } else {
                                 _endDate = DateTime.now();
@@ -199,9 +203,7 @@ class _MyAppState extends State<MyApp> {
                           onSuggestionSelected: (Project suggestion) {
                             if (state != null) {
                               setState(() {
-                                if (state.project == null) {
-                                  state.project = StateProject();
-                                }
+                                if (state.project == null) state.project = StateProject();
                                 state.project.id = suggestion.id.toString();
                                 state.project.name = suggestion.name;
                                 state.project.customer = suggestion.customer.name;
@@ -221,6 +223,10 @@ class _MyAppState extends State<MyApp> {
                           placeholder: "Aufgabe",
                           autocorrect: false,
                           maxLines: 1,
+                          onChanged: (String text) {
+                            if (state == null) state = TrackerState();
+                            state.task_name = text;
+                          },
                         ),
                       ),
                       Padding(
@@ -230,6 +236,10 @@ class _MyAppState extends State<MyApp> {
                           placeholder: "Kommentar",
                           maxLines: null,
                           keyboardType: TextInputType.multiline,
+                          onChanged: (String text) {
+                            if (state == null) state = TrackerState();
+                            state.comment = text;
+                          },
                         ),
                       ),
                       Padding(
@@ -283,7 +293,8 @@ class _MyAppState extends State<MyApp> {
                                     GestureDetector(
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Text(DateFormat("dd.MM.yyyy").format(_startDate)),
+                                        child: Text(
+                                            _startDate != null ? DateFormat("dd.MM.yyyy").format(_startDate) : "heute"),
                                       ),
                                       onTap: () {
                                         if (state != null && !state.isTracking()) {
@@ -293,7 +304,7 @@ class _MyAppState extends State<MyApp> {
                                               return _buildBottomPicker(
                                                 CupertinoDatePicker(
                                                   mode: CupertinoDatePickerMode.date,
-                                                  initialDateTime: _startDate,
+                                                  initialDateTime: _startDate != null ? _startDate : DateTime.now(),
                                                   use24hFormat: true,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     setState(() {
@@ -318,7 +329,8 @@ class _MyAppState extends State<MyApp> {
                                     GestureDetector(
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Text(DateFormat("HH:mm").format(_startDate)),
+                                        child:
+                                            Text(_startDate != null ? DateFormat("HH:mm").format(_startDate) : "00:00"),
                                       ),
                                       onTap: () {
                                         if (state != null && !state.isTracking()) {
@@ -328,7 +340,7 @@ class _MyAppState extends State<MyApp> {
                                               return _buildBottomPicker(
                                                 CupertinoDatePicker(
                                                   mode: CupertinoDatePickerMode.time,
-                                                  initialDateTime: _startDate,
+                                                  initialDateTime: _startDate != null ? _startDate : DateTime.now(),
                                                   use24hFormat: true,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     setState(() {
@@ -347,7 +359,7 @@ class _MyAppState extends State<MyApp> {
                                       child: Text("bis"),
                                     ),
                                     GestureDetector(
-                                      child: Text(_endDate != null ? DateFormat("HH:mm").format(_endDate) : ""),
+                                      child: Text(_endDate != null ? DateFormat("HH:mm").format(_endDate) : "00:00"),
                                       onTap: () {
                                         if (state != null && !state.isTracking()) {
                                           showCupertinoModalPopup<void>(
@@ -356,8 +368,8 @@ class _MyAppState extends State<MyApp> {
                                               return _buildBottomPicker(
                                                 CupertinoDatePicker(
                                                   mode: CupertinoDatePickerMode.time,
-                                                  minimumDate: _startDate,
-                                                  initialDateTime: _endDate,
+                                                  minimumDate: _startDate != null ? _startDate : DateTime.now(),
+                                                  initialDateTime: _endDate != null ? _endDate : DateTime.now(),
                                                   use24hFormat: true,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     setState(() {
@@ -390,7 +402,11 @@ class _MyAppState extends State<MyApp> {
                                   if (state != null) {
                                     state.setTracking(!state.isTracking());
                                     if (state.isTracking()) {
-                                      _startDate = DateTime.now();
+                                      if (_startDate == null) {
+                                        _startDate = DateTime.now();
+                                      } else {
+                                        _paused += DateTime.now().difference(_endDate);
+                                      }
                                       _endDate = null;
                                     } else {
                                       _endDate = DateTime.now();
@@ -420,8 +436,9 @@ class _MyAppState extends State<MyApp> {
                               state.project = null;
                               state.task_name = "";
                               state.comment = "";
-                              _startDate = DateTime.now();
-                              _endDate = DateTime.now();
+                              _startDate = null;
+                              _endDate = null;
+                              _paused = Duration();
                               updateInputs();
                             });
                           },
@@ -685,13 +702,17 @@ class _TrackingLabelState extends State<TrackingLabel> {
 
   _TrackingLabelState() {
     Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      setState(() {
-        if (widget.state != null && widget.state.isTracking()) {
-          d = DateTime.now().difference(widget._startDate) - widget._paused;
-        } else {
-          d = widget._endDate.difference(widget._startDate) - widget._paused;
-        }
-      });
+      if (widget._startDate != null) {
+        setState(() {
+          if (widget.state != null && widget.state.isTracking()) {
+            d = DateTime.now().difference(widget._startDate) - widget._paused;
+          } else {
+            if (widget._endDate != null) {
+              d = widget._endDate.difference(widget._startDate) - widget._paused;
+            }
+          }
+        });
+      }
     });
   }
 
