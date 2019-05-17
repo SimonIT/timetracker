@@ -136,23 +136,7 @@ class _MyAppState extends State<MyApp> {
                         mainAxisAlignment: MainAxisAlignment.center,
                       ),
                       TrackingButton(
-                        onPressed: () {
-                          setState(() {
-                            if (state != null) {
-                              state.setTracking(!state.isTracking());
-                              if (state.isTracking()) {
-                                if (_startDate == null) {
-                                  _startDate = DateTime.now();
-                                } else {
-                                  _paused += DateTime.now().difference(_endDate);
-                                }
-                                _endDate = null;
-                              } else {
-                                _endDate = DateTime.now();
-                              }
-                            }
-                          });
-                        },
+                        onPressed: () => track(context),
                         tracking: state != null ? state.isTracking() : false,
                       ),
                     ],
@@ -187,16 +171,11 @@ class _MyAppState extends State<MyApp> {
                             maxLines: 1,
                           ),
                           itemBuilder: (BuildContext context, Project itemData) {
-                            return Container(
-                              child: Container(
-                                color: CupertinoTheme.of(context).primaryColor,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: Text(
-                                    "${itemData.customer.name}: ${itemData.name}",
-                                    style: TextStyle(color: CupertinoColors.black),
-                                  ),
-                                ),
+                            return Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                "${itemData.customer.name}: ${itemData.name}",
+                                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                               ),
                             );
                           },
@@ -220,6 +199,7 @@ class _MyAppState extends State<MyApp> {
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoTextField(
                           controller: _task,
+                          enabled: state.project != null,
                           placeholder: "Aufgabe",
                           autocorrect: false,
                           maxLines: 1,
@@ -308,6 +288,7 @@ class _MyAppState extends State<MyApp> {
                                                   use24hFormat: true,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     setState(() {
+                                                      _paused = Duration();
                                                       _startDate = newDateTime;
                                                     });
                                                   },
@@ -344,6 +325,7 @@ class _MyAppState extends State<MyApp> {
                                                   use24hFormat: true,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     setState(() {
+                                                      _paused = Duration();
                                                       _startDate = newDateTime;
                                                     });
                                                   },
@@ -373,6 +355,7 @@ class _MyAppState extends State<MyApp> {
                                                   use24hFormat: true,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     setState(() {
+                                                      _paused = Duration();
                                                       _endDate = newDateTime;
                                                     });
                                                   },
@@ -397,23 +380,7 @@ class _MyAppState extends State<MyApp> {
                           children: <Widget>[
                             TrackingLabel(state, _startDate, _endDate, _paused),
                             TrackingButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (state != null) {
-                                    state.setTracking(!state.isTracking());
-                                    if (state.isTracking()) {
-                                      if (_startDate == null) {
-                                        _startDate = DateTime.now();
-                                      } else {
-                                        _paused += DateTime.now().difference(_endDate);
-                                      }
-                                      _endDate = null;
-                                    } else {
-                                      _endDate = DateTime.now();
-                                    }
-                                  }
-                                });
-                              },
+                              onPressed: () => track(context),
                               tracking: state != null ? state.isTracking() : false,
                             ),
                           ],
@@ -424,7 +391,11 @@ class _MyAppState extends State<MyApp> {
                         padding: const EdgeInsets.all(8.0),
                         child: CupertinoButton.filled(
                           child: Text("Buchen"),
-                          onPressed: () {},
+                          onPressed: () {
+                            state.paused_duration = _paused.inMilliseconds.toString();
+                            state.started_at = _startDate.millisecondsSinceEpoch.toString();
+                            state.entry_date = DateFormat("dd.MM.yyyy").format(_startDate);
+                          },
                         ),
                       ),
                       Padding(
@@ -602,6 +573,53 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
+  }
+
+  void track(BuildContext context) {
+    setState(() {
+      if (state != null) {
+        if (state.project != null && state.task_name.isNotEmpty) {
+          state.setTracking(!state.isTracking());
+          if (state.isTracking()) {
+            if (_startDate == null) {
+              _startDate = DateTime.now();
+            } else {
+              _paused += DateTime.now().difference(_endDate);
+            }
+            _endDate = null;
+          } else {
+            _endDate = DateTime.now();
+          }
+        } else {
+          showCupertinoDialog(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+                  title: Icon(
+                    IconData(
+                      0xF3BC,
+                      fontFamily: CupertinoIcons.iconFont,
+                      fontPackage: CupertinoIcons.iconFontPackage,
+                      matchTextDirection: true,
+                    ),
+                    color: CupertinoTheme.of(context).primaryContrastingColor,
+                  ),
+                  content: Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
+                  actions: [
+                    CupertinoDialogAction(
+                      isDefaultAction: true,
+                      child: Text(
+                        "OK",
+                      ),
+                      onPressed: () {
+                        Navigator.of(context, rootNavigator: true).pop("Cancel");
+                      },
+                    )
+                  ],
+                ),
+          );
+        }
+      }
+    });
   }
 }
 
