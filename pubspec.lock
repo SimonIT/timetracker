@@ -14,7 +14,7 @@ packages:
       name: archive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.8"
+    version: "2.0.9"
   args:
     dependency: transitive
     description:
@@ -28,7 +28,7 @@ packages:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -198,12 +198,10 @@ packages:
   flutter_typeahead:
     dependency: "direct main"
     description:
-      path: "."
-      ref: add_cupertino
-      resolved-ref: "099ba0046f814dd407c978d9568f2e92e99c3c33"
-      url: "git://github.com/KaYBlitZ/flutter_typeahead.git"
-    source: git
-    version: "1.5.0"
+      name: flutter_typeahead
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.6.0"
   front_end:
     dependency: transitive
     description:
@@ -371,7 +369,7 @@ packages:
       name: petitparser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.1"
+    version: "2.3.0"
   pool:
     dependency: transitive
     description:
@@ -399,7 +397,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
   shelf:
     dependency: transitive
     description:
@@ -474,7 +472,7 @@ packages:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.4"
+    version: "0.2.5"
   timing:
     dependency: transitive
     description:
@@ -523,7 +521,7 @@ packages:
       name: xml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.4.1"
+    version: "3.5.0"
   yaml:
     dependency: transitive
     description:
@@ -532,5 +530,5 @@ packages:
     source: hosted
     version: "2.1.15"
 sdks:
-  dart: ">=2.3.0-dev.0.1 <3.0.0"
+  dart: ">=2.3.0 <3.0.0"
   flutter: ">=0.1.4 <2.0.0"
