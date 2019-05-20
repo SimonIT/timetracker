@@ -119,7 +119,7 @@ class TrackerState {
 
   TrackerState();
 
-  setTracking(bool state) {
+  setStatus(bool state) {
     if (state) {
       this.status = "running";
     } else {
@@ -127,8 +127,78 @@ class TrackerState {
     }
   }
 
-  bool isTracking() {
+  bool getStatus() {
     return this.status == "running";
+  }
+
+  void setStartedAt(DateTime startedAt) {
+    this.started_at = startedAt.millisecondsSinceEpoch.toString();
+  }
+
+  DateTime getStartedAt() {
+    int startedMillis = int.parse(this.started_at);
+    return startedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(startedMillis) : DateTime.now();
+  }
+
+  DateTime getStoppedAt() {
+    int stoppedMillis = int.parse(this.stopped_at);
+    return stoppedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(stoppedMillis) : DateTime.now();
+  }
+
+  void setStoppedAt(DateTime stoppedAt) {
+    this.stopped_at = stoppedAt.millisecondsSinceEpoch.toString();
+    setEndedAt(stoppedAt);
+  }
+
+  void setEndedAt(DateTime endedAt) {
+    this.ended_at = endedAt.millisecondsSinceEpoch.toString();
+  }
+
+  DateTime getEndedAt() {
+    int endedMillis = int.parse(this.ended_at);
+    return endedMillis > 0 ? DateTime.fromMillisecondsSinceEpoch(endedMillis) : DateTime.now();
+  }
+
+  void setManualTimeChange(bool manualTimeChange) {
+    this.manual_time_change = manualTimeChange.toString();
+  }
+
+  bool getManualTimeChange() {
+    return this.manual_time_change.toLowerCase() == "true";
+  }
+
+  void setPausedDuration(Duration pausedDuration) {
+    this.paused_duration = pausedDuration.inMilliseconds.toString();
+  }
+
+  Duration getPausedDuration() {
+    return Duration(milliseconds: this.paused_duration != null ? int.parse(this.paused_duration) : 0);
+  }
+
+  void setToEntry(Entry entry) {
+    if (this.project == null) this.project = StateProject();
+    this.project.id = entry.id.toString();
+    this.project.name = entry.project_name;
+    this.project.customer = entry.customer_name;
+    this.task_name = entry.task_name;
+  }
+
+  void setProject(Project project) {
+    if (this.project == null) this.project = StateProject();
+    this.project.id = project.id.toString();
+    this.project.name = project.name;
+    this.project.customer = project.customer.name;
+  }
+
+  void empty() {
+    this.project = null;
+    this.task_name = "";
+    this.comment = "";
+    this.started_at = "0";
+    this.stopped_at = "0";
+    this.ended_at = "0";
+    this.manual_time_change = "false";
+    this.status = "stopped";
   }
 
   factory TrackerState.fromJson(Map<String, dynamic> json) => _$TrackerStateFromJson(json);

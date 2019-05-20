@@ -94,7 +94,7 @@ Future<TrackerState> loadTrackerState() async {
   }
 }
 
-setTrackerState(TrackerState state) async {
+void setTrackerState(TrackerState state) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
     http.Response result = await http.post(
       "${baseUrl}tracker/time_entries/timer_state.json",
@@ -114,7 +114,7 @@ setTrackerState(TrackerState state) async {
           "&timer_state%5Bproject%5D%5Bname%5D=${Uri.encodeQueryComponent(state.project.name)}"
           "&timer_state%5Bproject%5D%5Bcustomer%5D=${Uri.encodeQueryComponent(state.project.customer)}",
     );
-    if (result.statusCode == 200) {
+    if (result.statusCode == 202) {
       print(result.body);
     } else {
       throw Exception();
