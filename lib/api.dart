@@ -96,23 +96,29 @@ Future<TrackerState> loadTrackerState() async {
 
 void setTrackerState(TrackerState state) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    String body = "auth_token=$authToken"
+        "&timer_state%5Buuid%5D=${state.uuid}"
+        "&timer_state%5Bstatus%5D=${state.status}"
+        "&timer_state%5Btask_name%5D=${Uri.encodeQueryComponent(state.task_name)}"
+        "&timer_state%5Bstarted_at%5D=${state.started_at}"
+        "&timer_state%5Bstopped_at%5D=${state.stopped_at}"
+        "&timer_state%5Bended_at%5D=${state.stopped_at}"
+        "&timer_state%5Bpaused_duration%5D=${state.paused_duration}"
+        "&timer_state%5Bentry_date%5D=${state.entry_date}"
+        "&timer_state%5Bcomment%5D=${Uri.encodeQueryComponent(state.comment)}"
+        "&timer_state%5Bmanual_time_change%5D=${state.manual_time_change}";
+    if (state.project != null) {
+      body += "&timer_state%5Bproject%5D%5Bid%5D=${state.project.id}"
+          "&timer_state%5Bproject%5D%5Bname%5D=${Uri.encodeQueryComponent(state.project.name)}"
+          "&timer_state%5Bproject%5D%5Bcustomer%5D=${Uri.encodeQueryComponent(state.project.customer)}";
+    } else {
+      body += "&timer_state%5Bproject%5D=";
+    }
+
     http.Response result = await http.post(
       "${baseUrl}tracker/time_entries/timer_state.json",
       headers: headers,
-      body: "auth_token=$authToken"
-          "&timer_state%5Buuid%5D=${state.uuid}"
-          "&timer_state%5Bstatus%5D=${state.status}"
-          "&timer_state%5Btask_name%5D=${Uri.encodeQueryComponent(state.task_name)}"
-          "&timer_state%5Bstarted_at%5D=${state.started_at}"
-          "&timer_state%5Bstopped_at%5D=${state.stopped_at}"
-          "&timer_state%5Bended_at%5D=${state.stopped_at}"
-          "&timer_state%5Bpaused_duration%5D=${state.paused_duration}"
-          "&timer_state%5Bentry_date%5D=${state.entry_date}"
-          "&timer_state%5Bcomment%5D=${Uri.encodeQueryComponent(state.comment)}"
-          "&timer_state%5Bmanual_time_change%5D=${state.manual_time_change}"
-          "&timer_state%5Bproject%5D%5Bid%5D=${state.project.id}"
-          "&timer_state%5Bproject%5D%5Bname%5D=${Uri.encodeQueryComponent(state.project.name)}"
-          "&timer_state%5Bproject%5D%5Bcustomer%5D=${Uri.encodeQueryComponent(state.project.customer)}",
+      body: body,
     );
     if (result.statusCode == 202) {
       print(result.body);

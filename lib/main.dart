@@ -392,9 +392,6 @@ class _MyAppState extends State<MyApp> {
                                 onPressed: () {
                                   setState(() {
                                     state.empty();
-                                    state.started_at = "0";
-                                    state.ended_at = "0";
-                                    state.setPausedDuration(Duration());
                                     api.setTrackerState(state);
                                     updateInputs();
                                   });

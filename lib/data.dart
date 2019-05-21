@@ -197,6 +197,8 @@ class TrackerState {
     this.started_at = "0";
     this.stopped_at = "0";
     this.ended_at = "0";
+    this.entry_date = "heute";
+    this.paused_duration = "0";
     this.manual_time_change = "false";
     this.status = "stopped";
   }
