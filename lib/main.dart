@@ -473,80 +473,14 @@ class _MyAppState extends State<MyApp> {
                   case 3:
                     return CupertinoTabView(
                       builder: (BuildContext context) {
-                        return FutureBuilder(
-                          future: api.loadCredentials(),
-                          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                            if (snapshot.hasData && snapshot.data) {
-                              _company.text = api.authCompany;
-                              _user.text = api.authUsername;
-                            }
-                            return Padding(
-                              padding: EdgeInsets.all(10),
-                              child: ListView(
-                                physics: ClampingScrollPhysics(),
-                                children: <Widget>[
-                                  Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        "Ihre Papierkram.de Zugangsdaten",
-                                        textScaleFactor: 2,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: CupertinoTextField(
-                                      controller: _company,
-                                      placeholder: "Firmen ID",
-                                      autocorrect: false,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: CupertinoTextField(
-                                      controller: _user,
-                                      placeholder: "Nutzer",
-                                      autocorrect: false,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: CupertinoTextField(
-                                      controller: _password,
-                                      placeholder: "Passwort",
-                                      autocorrect: false,
-                                      maxLines: 1,
-                                      obscureText: true,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: CupertinoButton.filled(
-                                      child: Text("Speichern"),
-                                      onPressed: () {
-                                        if (_password.text.isNotEmpty) {
-                                          api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
-                                        }
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
-                            );
-                          },
-                        );
+                        return CredentialsPage(_company, _user, _password, _refresh);
                       },
                     );
                 }
               },
             )
           : CupertinoPageScaffold(
-              child: Center(
-                child: CupertinoActivityIndicator(),
-              ),
+              child: CredentialsPage(_company, _user, _password, _refresh),
             ),
     );
   }
@@ -638,6 +572,83 @@ class _MyAppState extends State<MyApp> {
         );
       }
     });
+  }
+}
+
+class CredentialsPage extends StatelessWidget {
+  final TextEditingController _company;
+  final TextEditingController _user;
+  final TextEditingController _password;
+  final Function _refresh;
+
+  CredentialsPage(this._company, this._user, this._password, this._refresh, {Key key}) : super(key: key) {
+    api.loadCredentials().then((bool success) {
+      if (success) {
+        _company.text = api.authCompany;
+        _user.text = api.authUsername;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: ListView(
+        physics: ClampingScrollPhysics(),
+        children: <Widget>[
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Ihre Papierkram.de Zugangsdaten",
+                textScaleFactor: 2,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: CupertinoTextField(
+              controller: _company,
+              placeholder: "Firmen ID",
+              autocorrect: false,
+              maxLines: 1,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: CupertinoTextField(
+              controller: _user,
+              placeholder: "Nutzer",
+              autocorrect: false,
+              maxLines: 1,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: CupertinoTextField(
+              controller: _password,
+              placeholder: "Passwort",
+              autocorrect: false,
+              maxLines: 1,
+              obscureText: true,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: CupertinoButton.filled(
+              child: Text("Speichern"),
+              onPressed: () async {
+                if (_password.text.isNotEmpty) {
+                  await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
+                  this._refresh();
+                }
+              },
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
 
