@@ -171,8 +171,8 @@ class _MyAppState extends State<MyApp> {
                                 onSuggestionSelected: (Project suggestion) {
                                   setState(() {
                                     state.setProject(suggestion);
-                                    updateInputs();
                                     api.setTrackerState(state);
+                                    updateInputs();
                                   });
                                 },
                                 suggestionsCallback: (String pattern) async {
@@ -275,6 +275,8 @@ class _MyAppState extends State<MyApp> {
                                                             state.setManualTimeChange(true);
                                                             state.setPausedDuration(Duration());
                                                             state.setStartedAt(newDateTime);
+                                                            if (!state.hasStoppedTime())
+                                                              state.setStoppedAt(DateTime.now());
                                                             api.setTrackerState(state);
                                                           });
                                                         },
@@ -313,6 +315,8 @@ class _MyAppState extends State<MyApp> {
                                                             state.setManualTimeChange(true);
                                                             state.setPausedDuration(Duration());
                                                             state.setStartedAt(newDateTime);
+                                                            if (!state.hasStoppedTime())
+                                                              state.setStoppedAt(DateTime.now());
                                                             api.setTrackerState(state);
                                                           });
                                                         },
@@ -344,6 +348,8 @@ class _MyAppState extends State<MyApp> {
                                                           setState(() {
                                                             state.setManualTimeChange(true);
                                                             state.setPausedDuration(Duration());
+                                                            if (!state.hasStartedTime())
+                                                              state.setStartedAt(DateTime.now());
                                                             state.setStoppedAt(newDateTime);
                                                             api.setTrackerState(state);
                                                           });
@@ -380,8 +386,11 @@ class _MyAppState extends State<MyApp> {
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoButton.filled(
                                 child: Text("Buchen"),
-                                onPressed: () {
-                                  state.entry_date = DateFormat("dd.MM.yyyy").format(state.getStartedAt()); // TODO
+                                onPressed: () async {
+                                  await api.postTrackedTime(state);
+                                  state.empty();
+                                  api.setTrackerState(state);
+                                  _refresh();
                                 },
                               ),
                             ),
@@ -529,7 +538,7 @@ class _MyAppState extends State<MyApp> {
         } else {
           state.setStatus(!state.getStatus());
           if (state.getStatus()) {
-            if (state.started_at == "0") {
+            if (!state.hasStartedTime()) {
               state.setStartedAt(DateTime.now());
               api.setTrackerState(state);
             } else {

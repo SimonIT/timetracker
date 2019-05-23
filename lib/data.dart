@@ -203,6 +203,14 @@ class TrackerState {
     this.status = "stopped";
   }
 
+  bool hasStartedTime() {
+    return this.started_at != "0";
+  }
+
+  bool hasStoppedTime() {
+    return this.stopped_at != "0";
+  }
+
   factory TrackerState.fromJson(Map<String, dynamic> json) => _$TrackerStateFromJson(json);
 
   Map<String, dynamic> toJson() => _$TrackerStateToJson(this);

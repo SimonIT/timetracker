@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:time_tracker/data.dart';
 
 String authCompany;
@@ -18,10 +19,11 @@ String baseUrl;
 String apiDomain = ".papierkram.de"; // LIVE
 String apiPath = "/api/v1/";
 
-const Map<String, String> headers = {
+final Map<String, String> headers = {
   'Accept': '*/*',
   'Content-Type': 'application/x-www-form-urlencoded',
 };
+final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 void saveSettingsCheckToken(String company, String username, String password) async {
   String tokenUrl = 'https://$company$apiDomain$apiPath';
@@ -121,6 +123,30 @@ void setTrackerState(TrackerState state) async {
       body: body,
     );
     if (result.statusCode == 202) {
+      print(result.body);
+    } else {
+      throw Exception();
+    }
+  }
+}
+
+void postTrackedTime(TrackerState state) async {
+  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
+    String body = "auth_token=$authToken"
+        "&tracker_time_entry%5Bstarted_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt()))}"
+        "&tracker_time_entry%5Bended_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt()))}"
+        "&tracker_time_entry%5Bcomments%5D=${Uri.encodeQueryComponent(state.comment)}"
+        "&tracker_time_entry%5Bduration%5D=${(state.getStoppedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes}"
+        "&project_id=${state.project.id}"
+        "&task_name=${Uri.encodeQueryComponent(state.task_name)}"
+        "&timer=true";
+
+    http.Response result = await http.post(
+      "${baseUrl}tracker/time_entries.json",
+      headers: headers,
+      body: body,
+    );
+    if (result.statusCode == 200) {
       print(result.body);
     } else {
       throw Exception();
