@@ -389,7 +389,7 @@ class _MyAppState extends State<MyApp> {
                                 onPressed: () async {
                                   await api.postTrackedTime(state);
                                   state.empty();
-                                  api.setTrackerState(state);
+                                  await api.setTrackerState(state);
                                   _refresh();
                                 },
                               ),
@@ -418,63 +418,9 @@ class _MyAppState extends State<MyApp> {
                           padding: const EdgeInsets.symmetric(
                             vertical: 16.0,
                           ),
-                          child: ListView.builder(
+                          child: ListView(
                             physics: ClampingScrollPhysics(),
-                            /*children: <Widget>[
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    width: 1,
-                                    color: CupertinoColors.lightBackgroundGray,
-                                  ),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(9.0),
-                                child: Row(
-                                  children: <Widget>[
-                                    Text(
-                                      "Heute",
-                                      textScaleFactor: 1.5,
-                                    ),
-                                    Text("19m"),
-                                  ],
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    width: 1,
-                                    color: CupertinoColors.lightBackgroundGray,
-                                  ),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(9.0),
-                                child: Text(
-                                  "Frühere Einträge",
-                                  textScaleFactor: 1.5,
-                                ),
-                              ),
-                            ),
-                          ],*/
-                            itemBuilder: (BuildContext context, int index) {
-                              Entry recent = state.recent_entries[index];
-                              return RecentTasks(
-                                entry: recent,
-                                onPressed: () {
-                                  setState(() {
-                                    state.setToEntry(recent);
-                                    updateInputs();
-                                  });
-                                },
-                              );
-                            },
-                            itemCount: state.recent_entries.length,
+                            children: getEntryWidgets(),
                           ),
                         );
                       },
@@ -582,6 +528,83 @@ class _MyAppState extends State<MyApp> {
       }
     });
   }
+
+  List<Widget> getEntryWidgets() {
+    List<Widget> widgets = [
+      Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              width: 1,
+              color: CupertinoColors.lightBackgroundGray,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(9.0),
+          child: Row(
+            children: <Widget>[
+              Text(
+                "Heute",
+                textScaleFactor: 1.5,
+              ),
+              Text(
+                prettyDuration(
+                  state.getTrackedToday(),
+                  abbreviated: true,
+                ),
+              ),
+            ],
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+        ),
+      ),
+    ];
+
+    for (Entry e in state.getTodaysEntries()) {
+      widgets.add(RecentTasks(
+        entry: e,
+        onPressed: () {
+          setState(() {
+            state.setToEntry(e);
+            updateInputs();
+          });
+        },
+      ));
+    }
+
+    widgets.add(Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            width: 1,
+            color: CupertinoColors.lightBackgroundGray,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Text(
+          "Frühere Einträge",
+          textScaleFactor: 1.5,
+        ),
+      ),
+    ));
+
+    for (Entry e in state.getPrevoiusEntries()) {
+      widgets.add(RecentTasks(
+        entry: e,
+        onPressed: () {
+          setState(() {
+            state.setToEntry(e);
+            updateInputs();
+          });
+        },
+      ));
+    }
+
+    return widgets;
+  }
 }
 
 class CredentialsPage extends StatelessWidget {
@@ -677,17 +700,14 @@ class RecentTasks extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(9.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Text(
-                  "${entry.customer_name}: ${entry.project_name}",
-                  textScaleFactor: 0.75,
-                  style: TextStyle(
-                    color: CupertinoColors.lightBackgroundGray,
-                  ),
-                ),
-              ],
+            Text(
+              "${entry.customer_name}: ${entry.project_name}",
+              textScaleFactor: 0.75,
+              style: TextStyle(
+                color: CupertinoColors.lightBackgroundGray,
+              ),
             ),
             Row(
               children: <Widget>[

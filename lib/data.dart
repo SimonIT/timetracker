@@ -190,6 +190,24 @@ class TrackerState {
     this.project.customer = project.customer.name;
   }
 
+  List<Entry> getTodaysEntries() {
+    return this
+        .recent_entries
+        .where((Entry e) => DateTime.now().difference(e.getTimeStamp()).inDays.abs() == 0)
+        .toList();
+  }
+
+  List<Entry> getPrevoiusEntries() {
+    return this
+        .recent_entries
+        .where((Entry e) => DateTime.now().difference(e.getTimeStamp()).inDays.abs() != 0)
+        .toList();
+  }
+
+  Duration getTrackedToday() {
+    return Duration(seconds: this.tracked_today);
+  }
+
   void empty() {
     this.project = null;
     this.task_name = "";
@@ -244,6 +262,10 @@ class Entry {
   int task_duration;
 
   Entry();
+
+  DateTime getTimeStamp() {
+    return DateTime.fromMillisecondsSinceEpoch(this.timestamp * 1000);
+  }
 
   factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
 
