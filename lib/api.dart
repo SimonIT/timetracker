@@ -25,7 +25,7 @@ final Map<String, String> headers = {
 };
 final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
-void saveSettingsCheckToken(String company, String username, String password) async {
+Future<void> saveSettingsCheckToken(String company, String username, String password) async {
   String tokenUrl = 'https://$company$apiDomain$apiPath';
   http.Response result = await http.post(
     tokenUrl + "auth",
@@ -41,7 +41,7 @@ void saveSettingsCheckToken(String company, String username, String password) as
   }
 }
 
-void authenticate() async {
+Future<void> authenticate() async {
   if (await loadCredentials()) {
     http.Response result = await http.post(
       "${baseUrl}auth",
@@ -96,7 +96,7 @@ Future<TrackerState> loadTrackerState() async {
   }
 }
 
-void setTrackerState(TrackerState state) async {
+Future<void> setTrackerState(TrackerState state) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
     String body = "auth_token=$authToken"
         "&timer_state%5Buuid%5D=${state.uuid}"
@@ -130,7 +130,7 @@ void setTrackerState(TrackerState state) async {
   }
 }
 
-void postTrackedTime(TrackerState state) async {
+Future<void> postTrackedTime(TrackerState state) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
     String body = "auth_token=$authToken"
         "&tracker_time_entry%5Bstarted_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt()))}"
@@ -222,7 +222,7 @@ Future<List<Task>> loadTasks() async {
   }
 }
 
-writeCredsToLocalStore(String company, String username, String token) {
+void writeCredsToLocalStore(String company, String username, String token) {
   final FlutterSecureStorage storage = new FlutterSecureStorage();
 
   storage.write(key: 'company', value: company);

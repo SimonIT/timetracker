@@ -28,7 +28,7 @@ class _MyAppState extends State<MyApp> {
     _refresh();
   }
 
-  void _refresh() async {
+  Future<void> _refresh() async {
     await api.authenticate();
     api.loadTrackerState().then((TrackerState state) {
       if (state == null) {
