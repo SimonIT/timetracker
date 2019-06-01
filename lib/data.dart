@@ -197,7 +197,7 @@ class TrackerState {
         .toList();
   }
 
-  List<Entry> getPrevoiusEntries() {
+  List<Entry> getPreviousEntries() {
     return this
         .recent_entries
         .where((Entry e) => DateTime.now().difference(e.getTimeStamp()).inDays.abs() != 0)

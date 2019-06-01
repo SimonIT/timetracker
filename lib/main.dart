@@ -431,6 +431,8 @@ class _MyAppState extends State<MyApp> {
                         return CredentialsPage(_company, _user, _password, _refresh);
                       },
                     );
+                  default:
+                    return Text("Something went wrong");
                 }
               },
             )
@@ -591,7 +593,7 @@ class _MyAppState extends State<MyApp> {
       ),
     ));
 
-    for (Entry e in state.getPrevoiusEntries()) {
+    for (Entry e in state.getPreviousEntries()) {
       widgets.add(RecentTasks(
         entry: e,
         onPressed: () {
