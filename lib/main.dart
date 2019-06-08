@@ -31,13 +31,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> _refresh() async {
     await api.authenticate();
     api.loadTrackerState().then((TrackerState state) {
-      if (state == null) {
-      } else {
-        setState(() {
-          this.state = state;
-          updateInputs();
-        });
-      }
+      setState(() {
+        this.state = state;
+        if (state != null) updateInputs();
+      });
     });
   }
 
@@ -674,8 +671,30 @@ class CredentialsPage extends StatelessWidget {
               child: Text("Speichern"),
               onPressed: () async {
                 if (_password.text.isNotEmpty) {
-                  await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
-                  this._refresh();
+                  try {
+                    await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
+                    this._refresh();
+                  } catch (e) {
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (BuildContext context) => CupertinoAlertDialog(
+                            title: Text("Ein Fehler ist beim Login aufgetreten"),
+                            content: Text(e.message),
+                            actions: [
+                              CupertinoDialogAction(
+                                isDefaultAction: true,
+                                child: Text(
+                                  "Schließen",
+                                  style: TextStyle(color: CupertinoColors.destructiveRed),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context, rootNavigator: true).pop("Cancel");
+                                },
+                              )
+                            ],
+                          ),
+                    );
+                  }
                 }
               },
             ),
@@ -767,15 +786,16 @@ class TrackingLabel extends StatefulWidget {
 }
 
 class _TrackingLabelState extends State<TrackingLabel> {
-  Duration d = Duration();
+  Duration _d = Duration();
+  Timer _t;
 
   _TrackingLabelState() {
-    Timer.periodic(Duration(seconds: 1), (Timer timer) {
+    this._t = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       setState(() {
         if (widget.state.getStatus()) {
-          d = DateTime.now().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
+          _d = DateTime.now().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
         } else {
-          d = widget.state.getStoppedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
+          _d = widget.state.getStoppedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
         }
       });
     });
@@ -785,11 +805,17 @@ class _TrackingLabelState extends State<TrackingLabel> {
   Widget build(BuildContext context) {
     return Text(
       prettyDuration(
-        d,
+        _d,
         abbreviated: true,
       ),
       textScaleFactor: 1.5,
     );
+  }
+
+  @override
+  void dispose() {
+    this._t.cancel();
+    super.dispose();
   }
 }
 

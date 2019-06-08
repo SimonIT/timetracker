@@ -32,12 +32,19 @@ Future<void> saveSettingsCheckToken(String company, String username, String pass
     body: "email:$username&password:$password",
     headers: headers,
   );
-  if (result.statusCode == 200) {
-    Map jsonResult = jsonDecode(result.body);
-    if ((jsonResult["token"] as String).isNotEmpty) {
-      writeCredsToLocalStore(company, username, jsonResult["token"] as String);
-      authenticate();
-    } else {}
+  switch (result.statusCode) {
+    case 200:
+      Map jsonResult = jsonDecode(result.body);
+      if ((jsonResult["token"] as String).isNotEmpty) {
+        writeCredsToLocalStore(company, username, jsonResult["token"] as String);
+        authenticate();
+      } else {}
+      break;
+    case 302:
+    case 401:
+      throw Exception("Falsche Anmeldedaten");
+    default:
+      throw Exception(result.reasonPhrase);
   }
 }
 
