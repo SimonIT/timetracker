@@ -1,16 +1,11 @@
-# time_tracker
-
+# TimeTracker
+[![Build Status](https://travis-ci.com/SimonIT/TimeTracker.svg?branch=master)](https://travis-ci.com/SimonIT/TimeTracker)
 Papierkram.de - TimeTracker as flutter app
 
-## Getting Started
+This app brings the TimeTracker desktop application on your smartphone.
 
-This project is a starting point for a Flutter application.
+__Warning__ This app is not an official app by Papierkram.de
 
-A few resources to get you started if this is your first Flutter project:
+## Contributing
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+PRs are welcome 

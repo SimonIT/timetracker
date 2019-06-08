@@ -1,0 +1,62 @@
+matrix:
+  include:
+    - os: linux
+      language: android
+      licenses:
+        - 'android-sdk-preview-license-.+'
+        - 'android-sdk-license-.+'
+        - 'google-gdk-license-.+'
+      android:
+        components:
+          - tools
+          - platform-tools
+          - build-tools-28.0.3
+          - android-28
+      jdk: oraclejdk8
+      sudo: false
+      addons:
+        apt:
+          # Flutter depends on /usr/lib/x86_64-linux-gnu/libstdc++.so.6 version GLIBCXX_3.4.18
+          sources:
+            - ubuntu-toolchain-r-test # if we don't specify this, the libstdc++6 we get is the wrong version
+          packages:
+            - libstdc++6
+            - fonts-droid
+      install:
+        - git clone https://github.com/flutter/flutter.git -b stable
+      before_deploy:
+        - ./flutter/bin/flutter -v build apk
+    - os: osx
+      language: generic
+      install:
+        - pip install six
+        - brew update
+        - brew install --HEAD usbmuxd
+        - brew link usbmuxd
+        - brew install --HEAD libimobiledevice
+        - brew install ideviceinstaller ios-deploy
+        - git clone https://github.com/flutter/flutter.git -b stable
+
+      before_deploy:
+        - ./flutter/bin/flutter -v build ios --no-codesign
+
+script:
+  - ./flutter/bin/flutter test
+
+deploy:
+  provider: releases
+  pre-release: true
+  skip_cleanup: true
+  api_key: ${GH_TOKEN}
+  file_glob: true
+  file:
+    - build/app/outputs/apk/release/app-release.apk
+    - build/ios/iphoneos/app.ipa
+  on:
+    repo: SimonIT/TimeTracker
+    tags: true
+    all_branches: true
+
+cache:
+  directories:
+    - $HOME/.pub-cache
