@@ -383,12 +383,18 @@ class _MyAppState extends State<MyApp> {
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoButton.filled(
                                 child: Text("Buchen"),
-                                onPressed: () async {
-                                  await api.postTrackedTime(state);
-                                  state.empty();
-                                  await api.setTrackerState(state);
-                                  _refresh();
-                                },
+                                onPressed: state.getStatus()
+                                    ? null
+                                    : () async {
+                                        if (state.task_name.isNotEmpty) {
+                                          await api.postTrackedTime(state);
+                                          state.empty();
+                                          await api.setTrackerState(state);
+                                          _refresh();
+                                        } else {
+                                          showNoProjectDialog(context);
+                                        }
+                                      },
                               ),
                             ),
                             Padding(
@@ -396,11 +402,46 @@ class _MyAppState extends State<MyApp> {
                               child: CupertinoButton.filled(
                                 child: Text("Verwerfen"),
                                 onPressed: () {
-                                  setState(() {
-                                    state.empty();
-                                    api.setTrackerState(state);
-                                    updateInputs();
-                                  });
+                                  showCupertinoDialog(
+                                    context: context,
+                                    builder: (BuildContext context) => CupertinoAlertDialog(
+                                          title: Icon(
+                                            IconData(
+                                              0xF3BC,
+                                              fontFamily: CupertinoIcons.iconFont,
+                                              fontPackage: CupertinoIcons.iconFontPackage,
+                                              matchTextDirection: true,
+                                            ),
+                                            color: CupertinoTheme.of(context).primaryContrastingColor,
+                                          ),
+                                          content: Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
+                                          actions: [
+                                            CupertinoDialogAction(
+                                              isDefaultAction: true,
+                                              child: Text(
+                                                "OK",
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(context, rootNavigator: true).pop("OK");
+                                                setState(() {
+                                                  state.empty();
+                                                  api.setTrackerState(state);
+                                                  updateInputs();
+                                                });
+                                              },
+                                            ),
+                                            CupertinoDialogAction(
+                                              isDefaultAction: true,
+                                              child: Text(
+                                                "Abbrechen",
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(context, rootNavigator: true).pop("Abbrechen");
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                  );
                                 },
                               ),
                             )
@@ -498,34 +539,38 @@ class _MyAppState extends State<MyApp> {
           }
         }
       } else {
-        showCupertinoDialog(
-          context: context,
-          builder: (BuildContext context) => CupertinoAlertDialog(
-                title: Icon(
-                  IconData(
-                    0xF3BC,
-                    fontFamily: CupertinoIcons.iconFont,
-                    fontPackage: CupertinoIcons.iconFontPackage,
-                    matchTextDirection: true,
-                  ),
-                  color: CupertinoTheme.of(context).primaryContrastingColor,
-                ),
-                content: Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
-                actions: [
-                  CupertinoDialogAction(
-                    isDefaultAction: true,
-                    child: Text(
-                      "OK",
-                    ),
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true).pop("OK");
-                    },
-                  )
-                ],
-              ),
-        );
+        showNoProjectDialog(context);
       }
     });
+  }
+
+  void showNoProjectDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+            title: Icon(
+              IconData(
+                0xF3BC,
+                fontFamily: CupertinoIcons.iconFont,
+                fontPackage: CupertinoIcons.iconFontPackage,
+                matchTextDirection: true,
+              ),
+              color: CupertinoTheme.of(context).primaryContrastingColor,
+            ),
+            content: Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text(
+                  "OK",
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop("OK");
+                },
+              )
+            ],
+          ),
+    );
   }
 
   List<Widget> getEntryWidgets() {
