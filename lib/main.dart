@@ -265,6 +265,7 @@ class _MyAppState extends State<MyApp> {
                                                     return _buildBottomPicker(
                                                       CupertinoDatePicker(
                                                         mode: CupertinoDatePickerMode.date,
+                                                        maximumDate: state.getStoppedAt(),
                                                         initialDateTime: state.getStartedAt(),
                                                         use24hFormat: true,
                                                         onDateTimeChanged: (DateTime newDateTime) {
@@ -305,6 +306,7 @@ class _MyAppState extends State<MyApp> {
                                                     return _buildBottomPicker(
                                                       CupertinoDatePicker(
                                                         mode: CupertinoDatePickerMode.time,
+                                                        maximumDate: state.getStoppedAt(),
                                                         initialDateTime: state.getStartedAt(),
                                                         use24hFormat: true,
                                                         onDateTimeChanged: (DateTime newDateTime) {
