@@ -181,7 +181,7 @@ Future<List<Company>> loadCustomers() async {
 Future<List<Project>> loadProjects({String searchPattern}) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
     String url = "${baseUrl}projects.json?auth_token=$authToken";
-    url = searchPattern != null ? "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}" : url;
+    if (searchPattern != null) url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
     http.Response result = await http.get(
       url,
     );
