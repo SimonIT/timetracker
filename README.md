@@ -5,7 +5,7 @@ Papierkram.de - TimeTracker as flutter app
 
 This app brings the TimeTracker desktop application on your smartphone.
 
-__Warning__ This app is not an official app by Papierkram.de
+__Warning__ This is not an official app by [Papierkram.de](https://www.papierkram.de/). Use at your own risk
 
 ## TODO
 
