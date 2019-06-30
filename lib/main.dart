@@ -7,14 +7,14 @@ import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
 import 'package:time_tracker/data.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(TimeTrackerApp());
 
-class MyApp extends StatefulWidget {
+class TimeTrackerApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  _TimeTrackerAppState createState() => _TimeTrackerAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _TimeTrackerAppState extends State<TimeTrackerApp> {
   TrackerState state;
 
   TextEditingController _project = TextEditingController();
@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _user = TextEditingController();
   TextEditingController _password = TextEditingController();
 
-  _MyAppState() {
+  _TimeTrackerAppState() {
     _refresh();
   }
 

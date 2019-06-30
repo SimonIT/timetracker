@@ -3,6 +3,6 @@ import 'package:time_tracker/main.dart';
 
 void main() {
   testWidgets('', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(TimeTrackerApp());
   });
 }
