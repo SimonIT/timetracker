@@ -10,6 +10,7 @@ __Warning__ This is not an official app by [Papierkram.de](https://www.papierkra
 ## TODO
 
 - [ ] Pull to refresh, to refresh the state. Sadly I found no lib for cupertino
+- [ ] Add to F-Droid and Google Play Store
 
 ## Contributing
 

@@ -26,9 +26,8 @@ final Map<String, String> headers = {
 final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 Future<void> saveSettingsCheckToken(String company, String username, String password) async {
-  String tokenUrl = 'https://$company$apiDomain$apiPath';
   http.Response result = await http.post(
-    tokenUrl + "auth",
+    'https://$company$apiDomain${apiPath}auth',
     body: "email:$username&password:$password",
     headers: headers,
   );
@@ -139,19 +138,17 @@ Future<void> setTrackerState(TrackerState state) async {
 
 Future<void> postTrackedTime(TrackerState state) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    String body = "auth_token=$authToken"
-        "&tracker_time_entry%5Bstarted_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt()))}"
-        "&tracker_time_entry%5Bended_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt()))}"
-        "&tracker_time_entry%5Bcomments%5D=${Uri.encodeQueryComponent(state.comment)}"
-        "&tracker_time_entry%5Bduration%5D=${(state.getStoppedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes}"
-        "&project_id=${state.project.id}"
-        "&task_name=${Uri.encodeQueryComponent(state.task_name)}"
-        "&timer=true";
-
     http.Response result = await http.post(
       "${baseUrl}tracker/time_entries.json",
       headers: headers,
-      body: body,
+      body: "auth_token=$authToken"
+          "&tracker_time_entry%5Bstarted_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt()))}"
+          "&tracker_time_entry%5Bended_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt()))}"
+          "&tracker_time_entry%5Bcomments%5D=${Uri.encodeQueryComponent(state.comment)}"
+          "&tracker_time_entry%5Bduration%5D=${(state.getStoppedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes}"
+          "&project_id=${state.project.id}"
+          "&task_name=${Uri.encodeQueryComponent(state.task_name)}"
+          "&timer=true",
     );
     if (result.statusCode == 200) {
       print(result.body);
