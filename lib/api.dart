@@ -28,7 +28,7 @@ final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 Future<void> saveSettingsCheckToken(String company, String username, String password) async {
   http.Response result = await http.post(
     'https://$company$apiDomain${apiPath}auth',
-    body: "email:$username&password:$password",
+    body: "email=$username&password=$password",
     headers: headers,
   );
   switch (result.statusCode) {
