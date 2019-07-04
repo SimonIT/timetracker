@@ -145,7 +145,7 @@ Future<void> postTrackedTime(TrackerState state) async {
           "&tracker_time_entry%5Bstarted_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt()))}"
           "&tracker_time_entry%5Bended_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt()))}"
           "&tracker_time_entry%5Bcomments%5D=${Uri.encodeQueryComponent(state.comment)}"
-          "&tracker_time_entry%5Bduration%5D=${(state.getStoppedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes}"
+          "&tracker_time_entry%5Bduration%5D=${(state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes}"
           "&project_id=${state.project.id}"
           "&task_name=${Uri.encodeQueryComponent(state.task_name)}"
           "&timer=true",

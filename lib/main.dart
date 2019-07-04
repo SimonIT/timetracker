@@ -265,7 +265,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                     return _buildBottomPicker(
                                                       CupertinoDatePicker(
                                                         mode: CupertinoDatePickerMode.date,
-                                                        maximumDate: state.getStoppedAt(),
+                                                        maximumDate: state.getEndedAt(),
                                                         initialDateTime: state.getStartedAt(),
                                                         use24hFormat: true,
                                                         onDateTimeChanged: (DateTime newDateTime) {
@@ -306,7 +306,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                     return _buildBottomPicker(
                                                       CupertinoDatePicker(
                                                         mode: CupertinoDatePickerMode.time,
-                                                        maximumDate: state.getStoppedAt(),
+                                                        maximumDate: state.getEndedAt(),
                                                         initialDateTime: state.getStartedAt(),
                                                         use24hFormat: true,
                                                         onDateTimeChanged: (DateTime newDateTime) {
@@ -842,7 +842,7 @@ class _TrackingLabelState extends State<TrackingLabel> {
         if (widget.state.getStatus()) {
           _d = DateTime.now().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
         } else {
-          _d = widget.state.getStoppedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
+          _d = widget.state.getEndedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
         }
       });
     });
