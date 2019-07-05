@@ -407,42 +407,42 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                   showCupertinoDialog(
                                     context: context,
                                     builder: (BuildContext context) => CupertinoAlertDialog(
-                                          title: Icon(
-                                            IconData(
-                                              0xF3BC,
-                                              fontFamily: CupertinoIcons.iconFont,
-                                              fontPackage: CupertinoIcons.iconFontPackage,
-                                              matchTextDirection: true,
-                                            ),
-                                            color: CupertinoTheme.of(context).primaryContrastingColor,
-                                          ),
-                                          content: Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
-                                          actions: [
-                                            CupertinoDialogAction(
-                                              isDefaultAction: true,
-                                              child: Text(
-                                                "OK",
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context, rootNavigator: true).pop("OK");
-                                                setState(() {
-                                                  state.empty();
-                                                  api.setTrackerState(state);
-                                                  updateInputs();
-                                                });
-                                              },
-                                            ),
-                                            CupertinoDialogAction(
-                                              isDefaultAction: true,
-                                              child: Text(
-                                                "Abbrechen",
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context, rootNavigator: true).pop("Abbrechen");
-                                              },
-                                            ),
-                                          ],
+                                      title: Icon(
+                                        IconData(
+                                          0xF3BC,
+                                          fontFamily: CupertinoIcons.iconFont,
+                                          fontPackage: CupertinoIcons.iconFontPackage,
+                                          matchTextDirection: true,
                                         ),
+                                        color: CupertinoTheme.of(context).primaryContrastingColor,
+                                      ),
+                                      content: Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          isDefaultAction: true,
+                                          child: Text(
+                                            "OK",
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context, rootNavigator: true).pop("OK");
+                                            setState(() {
+                                              state.empty();
+                                              api.setTrackerState(state);
+                                              updateInputs();
+                                            });
+                                          },
+                                        ),
+                                        CupertinoDialogAction(
+                                          isDefaultAction: true,
+                                          child: Text(
+                                            "Abbrechen",
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context, rootNavigator: true).pop("Abbrechen");
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   );
                                 },
                               ),
@@ -489,39 +489,39 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
           showCupertinoDialog(
             context: context,
             builder: (BuildContext context) => CupertinoAlertDialog(
-                  title: Icon(
-                    IconData(
-                      0xF3BC,
-                      fontFamily: CupertinoIcons.iconFont,
-                      fontPackage: CupertinoIcons.iconFontPackage,
-                      matchTextDirection: true,
-                    ),
-                    color: CupertinoTheme.of(context).primaryContrastingColor,
-                  ),
-                  content: Text("Sollen die manuellen Änderungen zurückgesetzt werden?"),
-                  actions: [
-                    CupertinoDialogAction(
-                      isDefaultAction: true,
-                      child: Text(
-                        "OK",
-                      ),
-                      onPressed: () {
-                        Navigator.of(context, rootNavigator: true).pop("OK");
-                        state.setManualTimeChange(false);
-                        track(context);
-                      },
-                    ),
-                    CupertinoDialogAction(
-                      isDefaultAction: true,
-                      child: Text(
-                        "Abbrechen",
-                      ),
-                      onPressed: () {
-                        Navigator.of(context, rootNavigator: true).pop("Cancel");
-                      },
-                    )
-                  ],
+              title: Icon(
+                IconData(
+                  0xF3BC,
+                  fontFamily: CupertinoIcons.iconFont,
+                  fontPackage: CupertinoIcons.iconFontPackage,
+                  matchTextDirection: true,
                 ),
+                color: CupertinoTheme.of(context).primaryContrastingColor,
+              ),
+              content: Text("Sollen die manuellen Änderungen zurückgesetzt werden?"),
+              actions: [
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: Text(
+                    "OK",
+                  ),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop("OK");
+                    state.setManualTimeChange(false);
+                    track(context);
+                  },
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: Text(
+                    "Abbrechen",
+                  ),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop("Cancel");
+                  },
+                )
+              ],
+            ),
           );
         } else {
           state.setStatus(!state.getStatus());
@@ -550,28 +550,28 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-            title: Icon(
-              IconData(
-                0xF3BC,
-                fontFamily: CupertinoIcons.iconFont,
-                fontPackage: CupertinoIcons.iconFontPackage,
-                matchTextDirection: true,
-              ),
-              color: CupertinoTheme.of(context).primaryContrastingColor,
-            ),
-            content: Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
-            actions: [
-              CupertinoDialogAction(
-                isDefaultAction: true,
-                child: Text(
-                  "OK",
-                ),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop("OK");
-                },
-              )
-            ],
+        title: Icon(
+          IconData(
+            0xF3BC,
+            fontFamily: CupertinoIcons.iconFont,
+            fontPackage: CupertinoIcons.iconFontPackage,
+            matchTextDirection: true,
           ),
+          color: CupertinoTheme.of(context).primaryContrastingColor,
+        ),
+        content: Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: Text(
+              "OK",
+            ),
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).pop("OK");
+            },
+          )
+        ],
+      ),
     );
   }
 
@@ -725,21 +725,21 @@ class CredentialsPage extends StatelessWidget {
                     showCupertinoDialog(
                       context: context,
                       builder: (BuildContext context) => CupertinoAlertDialog(
-                            title: Text("Ein Fehler ist beim Login aufgetreten"),
-                            content: Text(e.message),
-                            actions: [
-                              CupertinoDialogAction(
-                                isDefaultAction: true,
-                                child: Text(
-                                  "Schließen",
-                                  style: TextStyle(color: CupertinoColors.destructiveRed),
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context, rootNavigator: true).pop("Cancel");
-                                },
-                              )
-                            ],
-                          ),
+                        title: Text("Ein Fehler ist beim Login aufgetreten"),
+                        content: Text(e.message),
+                        actions: [
+                          CupertinoDialogAction(
+                            isDefaultAction: true,
+                            child: Text(
+                              "Schließen",
+                              style: TextStyle(color: CupertinoColors.destructiveRed),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context, rootNavigator: true).pop("Cancel");
+                            },
+                          )
+                        ],
+                      ),
                     );
                   }
                 }
