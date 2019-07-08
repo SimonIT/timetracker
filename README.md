@@ -1,4 +1,7 @@
-# TimeTracker
+![alt text](assets/images/icon.png "TimeTracker Logo")
+TimeTracker
+==============
+
 [![Build Status](https://travis-ci.com/SimonIT/TimeTracker.svg?branch=master)](https://travis-ci.com/SimonIT/TimeTracker)
 
 Papierkram.de - TimeTracker as flutter app
