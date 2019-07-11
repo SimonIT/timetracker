@@ -73,6 +73,8 @@ Future<void> authenticate() async {
 Future<bool> loadCredentials() async {
   Map<String, String> credentials = await readCredsFromLocalStore();
 
+  //***REMOVED***
+
   if (credentials["company"] == null ||
       credentials["company"].isEmpty ||
       credentials["token"] == null ||
