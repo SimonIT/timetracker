@@ -73,6 +73,8 @@ Future<void> authenticate() async {
 Future<bool> loadCredentials() async {
   Map<String, String> credentials = await readCredsFromLocalStore();
 
+  //credentials = {'username': 'wilhelm@blueend.com', 'company': 'blueend', 'token': '7jArBRKNZW7s3pxYMeAb'};
+
   if (credentials["company"] == null ||
       credentials["company"].isEmpty ||
       credentials["token"] == null ||
