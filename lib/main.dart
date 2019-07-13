@@ -853,11 +853,7 @@ class _TrackingLabelState extends State<TrackingLabel> {
   _TrackingLabelState() {
     this._t = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       setState(() {
-        if (widget.state.getStatus()) {
-          _d = DateTime.now().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
-        } else {
-          _d = widget.state.getEndedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
-        }
+        _d = widget.state.getEndedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
       });
     });
   }

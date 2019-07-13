@@ -172,7 +172,9 @@ class TrackerState {
   }
 
   Duration getPausedDuration() {
-    return Duration(milliseconds: this.paused_duration != null ? int.parse(this.paused_duration) : 0);
+    return this.paused_duration != null && this.paused_duration != "null"
+        ? Duration(milliseconds: int.parse(this.paused_duration))
+        : Duration();
   }
 
   void setToEntry(Entry entry) {
