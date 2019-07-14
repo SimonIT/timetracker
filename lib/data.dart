@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:time_tracker/helpers.dart';
 
 part 'data.g.dart';
 
@@ -193,17 +194,11 @@ class TrackerState {
   }
 
   List<Entry> getTodaysEntries() {
-    return this
-        .recent_entries
-        .where((Entry e) => DateTime.now().difference(e.getTimeStamp()).inDays.abs() == 0)
-        .toList();
+    return this.recent_entries.where((Entry e) => onSameDay(DateTime.now(), e.getTimeStamp())).toList();
   }
 
   List<Entry> getPreviousEntries() {
-    return this
-        .recent_entries
-        .where((Entry e) => DateTime.now().difference(e.getTimeStamp()).inDays.abs() != 0)
-        .toList();
+    return this.recent_entries.where((Entry e) => !onSameDay(DateTime.now(), e.getTimeStamp())).toList();
   }
 
   Duration getTrackedToday() {
