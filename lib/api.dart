@@ -131,7 +131,8 @@ Future<void> setTrackerState(TrackerState state) async {
       body: body,
     );
     if (result.statusCode == 202) {
-      print(result.body);
+      Map<String, dynamic> apiResponse = jsonDecode(result.body);
+      if (apiResponse["success"] != "true") throw Exception();
     } else {
       throw Exception();
     }
@@ -153,7 +154,8 @@ Future<void> postTrackedTime(TrackerState state) async {
           "&timer=true",
     );
     if (result.statusCode == 200) {
-      print(result.body);
+      Map<String, dynamic> apiResponse = jsonDecode(result.body);
+      if (apiResponse["success"] != "true") throw Exception();
     } else {
       throw Exception();
     }
