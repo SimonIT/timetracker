@@ -17,6 +17,7 @@ class TimeTrackerApp extends StatefulWidget {
 class _TimeTrackerAppState extends State<TimeTrackerApp> {
   TrackerState state;
 
+  CupertinoTabController _tabController = CupertinoTabController();
   TextEditingController _project = TextEditingController();
   TextEditingController _task = TextEditingController();
   TextEditingController _comment = TextEditingController();
@@ -68,6 +69,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
       ),
       home: state != null
           ? CupertinoTabScaffold(
+              controller: _tabController,
               tabBar: CupertinoTabBar(
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
@@ -418,46 +420,52 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                               child: CupertinoButton.filled(
                                 child: Text("Verwerfen"),
                                 onPressed: () {
-                                  showCupertinoDialog(
-                                    context: context,
-                                    builder: (BuildContext context) => CupertinoAlertDialog(
-                                      title: Icon(
-                                        IconData(
-                                          0xF3BC,
-                                          fontFamily: CupertinoIcons.iconFont,
-                                          fontPackage: CupertinoIcons.iconFontPackage,
-                                          matchTextDirection: true,
-                                        ),
-                                        color: CupertinoTheme.of(context).primaryContrastingColor,
-                                      ),
-                                      content: Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
-                                      actions: [
-                                        CupertinoDialogAction(
-                                          isDefaultAction: true,
-                                          child: Text(
-                                            "OK",
+                                  state.hasStartedTime() || state.hasStoppedTime()
+                                      ? showCupertinoDialog(
+                                          context: context,
+                                          builder: (BuildContext context) => CupertinoAlertDialog(
+                                            title: Icon(
+                                              IconData(
+                                                0xF3BC,
+                                                fontFamily: CupertinoIcons.iconFont,
+                                                fontPackage: CupertinoIcons.iconFontPackage,
+                                                matchTextDirection: true,
+                                              ),
+                                              color: CupertinoTheme.of(context).primaryContrastingColor,
+                                            ),
+                                            content: Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
+                                            actions: [
+                                              CupertinoDialogAction(
+                                                isDefaultAction: true,
+                                                child: Text(
+                                                  "OK",
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context, rootNavigator: true).pop("OK");
+                                                  setState(() {
+                                                    state.empty();
+                                                    api.setTrackerState(state);
+                                                    updateInputs();
+                                                  });
+                                                },
+                                              ),
+                                              CupertinoDialogAction(
+                                                isDefaultAction: true,
+                                                child: Text(
+                                                  "Abbrechen",
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context, rootNavigator: true).pop("Abbrechen");
+                                                },
+                                              ),
+                                            ],
                                           ),
-                                          onPressed: () {
-                                            Navigator.of(context, rootNavigator: true).pop("OK");
-                                            setState(() {
-                                              state.empty();
-                                              api.setTrackerState(state);
-                                              updateInputs();
-                                            });
-                                          },
-                                        ),
-                                        CupertinoDialogAction(
-                                          isDefaultAction: true,
-                                          child: Text(
-                                            "Abbrechen",
-                                          ),
-                                          onPressed: () {
-                                            Navigator.of(context, rootNavigator: true).pop("Abbrechen");
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  );
+                                        )
+                                      : setState(() {
+                                          state.empty();
+                                          api.setTrackerState(state);
+                                          updateInputs();
+                                        });
                                 },
                               ),
                             )
@@ -621,17 +629,21 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
       ),
     ];
 
-    for (Entry e in state.getTodaysEntries()) {
+    void addRecentTaskWidget(Entry e) {
       widgets.add(RecentTasks(
         entry: e,
         onPressed: () {
           setState(() {
             state.setToEntry(e);
+            api.setTrackerState(state);
             updateInputs();
+            _tabController.index = 1;
           });
         },
       ));
     }
+
+    for (Entry e in state.getTodaysEntries()) addRecentTaskWidget(e);
 
     widgets.add(Container(
       decoration: BoxDecoration(
@@ -651,17 +663,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
       ),
     ));
 
-    for (Entry e in state.getPreviousEntries()) {
-      widgets.add(RecentTasks(
-        entry: e,
-        onPressed: () {
-          setState(() {
-            state.setToEntry(e);
-            updateInputs();
-          });
-        },
-      ));
-    }
+    for (Entry e in state.getPreviousEntries()) addRecentTaskWidget(e);
 
     return widgets;
   }
