@@ -7,6 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
 import 'package:time_tracker/data.dart';
 
+const Color green = Color.fromRGBO(91, 182, 91, 1);
+const Color red = Color.fromRGBO(218, 78, 73, 1);
+
 void main() => runApp(TimeTrackerApp());
 
 class TimeTrackerApp extends StatefulWidget {
@@ -669,7 +672,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   }
 }
 
-class CredentialsPage extends StatelessWidget {
+class CredentialsPage extends StatefulWidget {
   final TextEditingController _company;
   final TextEditingController _user;
   final TextEditingController _password;
@@ -683,6 +686,13 @@ class CredentialsPage extends StatelessWidget {
       }
     });
   }
+
+  @override
+  _CredentialsPageState createState() => _CredentialsPageState();
+}
+
+class _CredentialsPageState extends State<CredentialsPage> {
+  bool showPassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -703,7 +713,7 @@ class CredentialsPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: CupertinoTextField(
-              controller: _company,
+              controller: widget._company,
               placeholder: "Firmen ID",
               autocorrect: false,
               maxLines: 1,
@@ -712,7 +722,7 @@ class CredentialsPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: CupertinoTextField(
-              controller: _user,
+              controller: widget._user,
               placeholder: "Nutzer",
               autocorrect: false,
               maxLines: 1,
@@ -721,22 +731,46 @@ class CredentialsPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: CupertinoTextField(
-              controller: _password,
+              controller: widget._password,
               placeholder: "Passwort",
               autocorrect: false,
               maxLines: 1,
-              obscureText: true,
+              obscureText: !showPassword,
+              onChanged: (value) {
+                setState(() {
+                  // needed for show password button
+                });
+              },
             ),
           ),
+          if (widget._password.text.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  CupertinoSwitch(
+                    onChanged: (bool value) {
+                      setState(() {
+                        showPassword = value;
+                      });
+                    },
+                    value: showPassword,
+                    activeColor: green,
+                  ),
+                  Text("Passwort anzeigen")
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: CupertinoButton.filled(
               child: Text("Speichern"),
               onPressed: () async {
-                if (_password.text.isNotEmpty) {
+                if (widget._password.text.isNotEmpty) {
                   try {
-                    await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
-                    this._refresh();
+                    await api.saveSettingsCheckToken(widget._company.text, widget._user.text, widget._password.text);
+                    this.widget._refresh();
                   } catch (e) {
                     showCupertinoDialog(
                       context: context,
@@ -833,7 +867,7 @@ class TrackingButton extends StatelessWidget {
       child: CupertinoButton(
         child: tracking ? Icon(CupertinoIcons.pause_solid) : Icon(CupertinoIcons.play_arrow_solid),
         onPressed: onPressed,
-        color: tracking ? Color.fromRGBO(218, 78, 73, 1) : Color.fromRGBO(91, 182, 91, 1),
+        color: tracking ? red : green,
       ),
     );
   }
