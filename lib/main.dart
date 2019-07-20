@@ -163,6 +163,11 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                   placeholder: "Kunde/Projekt",
                                   autocorrect: false,
                                   maxLines: 1,
+                                  style: state.project != null
+                                      ? TextStyle(
+                                          color: CupertinoTheme.of(context).primaryContrastingColor,
+                                        )
+                                      : null,
                                 ),
                                 itemBuilder: (BuildContext context, Project itemData) {
                                   return Padding(
@@ -208,6 +213,11 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                   state.task_name = text;
                                   api.setTrackerState(state);
                                 },
+                                style: state.project == null
+                                    ? TextStyle(
+                                        color: CupertinoTheme.of(context).primaryContrastingColor,
+                                      )
+                                    : null,
                               ),
                             ),
                             Padding(
