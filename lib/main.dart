@@ -28,6 +28,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   TextEditingController _user = TextEditingController();
   TextEditingController _password = TextEditingController();
   CupertinoSuggestionsBoxController _projectSuggestion = CupertinoSuggestionsBoxController();
+  FocusNode _projectFocus = FocusNode();
   FocusNode _taskFocus = FocusNode();
 
   _TimeTrackerAppState() {
@@ -159,6 +160,8 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                 textFieldConfiguration: CupertinoTextFieldConfiguration(
                                   enabled: state.project == null,
                                   controller: _project,
+                                  focusNode: _projectFocus,
+                                  autofocus: state.project == null,
                                   clearButtonMode: OverlayVisibilityMode.editing,
                                   placeholder: "Kunde/Projekt",
                                   autocorrect: false,
@@ -184,6 +187,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                     api.setTrackerState(state);
                                     updateInputs();
                                   });
+                                  FocusScope.of(context).requestFocus(_taskFocus);
                                 },
                                 suggestionsCallback: (String pattern) async {
                                   List<Project> p = await api.loadProjects(searchPattern: pattern);
@@ -205,6 +209,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                               child: CupertinoTextField(
                                 controller: _task,
                                 focusNode: _taskFocus,
+                                autofocus: state.project != null && _task.text.isEmpty,
                                 enabled: state.project != null,
                                 placeholder: "Aufgabe",
                                 autocorrect: false,
@@ -224,6 +229,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoTextField(
                                 controller: _comment,
+                                autofocus: state.project != null && _task.text.isNotEmpty && _comment.text.isEmpty,
                                 placeholder: "Kommentar",
                                 maxLines: null,
                                 keyboardType: TextInputType.multiline,
@@ -422,6 +428,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                           state.empty();
                                           await api.setTrackerState(state);
                                           _refresh();
+                                          FocusScope.of(context).requestFocus(_projectFocus);
                                         } else {
                                           showNoProjectDialog(context);
                                         }
@@ -479,6 +486,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                           api.setTrackerState(state);
                                           updateInputs();
                                         });
+                                  FocusScope.of(context).requestFocus(_projectFocus);
                                 },
                               ),
                             )
