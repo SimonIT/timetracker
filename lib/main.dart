@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_easyrefresh/material_header.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
@@ -497,11 +499,14 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                   case 2:
                     return CupertinoTabView(
                       builder: (BuildContext context) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16.0,
-                          ),
+                        return EasyRefresh(
+                          header: MaterialHeader(),
+                          onRefresh: _refresh,
+                          bottomBouncing: false,
                           child: ListView(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                            ),
                             physics: ClampingScrollPhysics(),
                             children: getEntryWidgets(),
                           ),

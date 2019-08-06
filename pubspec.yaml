@@ -17,6 +17,7 @@ dependencies:
   duration: ^2.0.4
   uuid: ^2.0.0
   flutter_typeahead: ^1.6.0
+  flutter_easyrefresh: ^2.0.0
 
 dev_dependencies:
   flutter_test:
