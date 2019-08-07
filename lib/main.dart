@@ -309,9 +309,26 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                           setState(() {
                                                             state.setManualTimeChange(true);
                                                             state.setPausedDuration(Duration());
-                                                            state.setStartedAt(newDateTime);
-                                                            if (!state.hasStoppedTime())
-                                                              state.setStoppedAt(DateTime.now());
+                                                            DateTime started = state.getStartedAt();
+                                                            state.setStartedAt(DateTime(
+                                                                newDateTime.year,
+                                                                newDateTime.month,
+                                                                newDateTime.day,
+                                                                started.hour,
+                                                                started.minute,
+                                                                started.second,
+                                                                started.millisecond,
+                                                                started.microsecond));
+                                                            DateTime stopped = state.getStoppedAt();
+                                                            state.setStoppedAt(DateTime(
+                                                                newDateTime.year,
+                                                                newDateTime.month,
+                                                                newDateTime.day,
+                                                                stopped.hour,
+                                                                stopped.minute,
+                                                                stopped.second,
+                                                                stopped.millisecond,
+                                                                stopped.microsecond));
                                                             api.setTrackerState(state);
                                                           });
                                                         },
@@ -351,7 +368,9 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                             state.setManualTimeChange(true);
                                                             state.setPausedDuration(Duration());
                                                             state.setStartedAt(newDateTime);
-                                                            if (!state.hasStoppedTime())
+                                                            if (state.getStartedAt().isAfter(state.getStoppedAt()))
+                                                              state.setStoppedAt(state.getStartedAt());
+                                                            else if (!state.hasStoppedTime())
                                                               state.setStoppedAt(DateTime.now());
                                                             api.setTrackerState(state);
                                                           });
@@ -384,9 +403,11 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                           setState(() {
                                                             state.setManualTimeChange(true);
                                                             state.setPausedDuration(Duration());
-                                                            if (!state.hasStartedTime())
-                                                              state.setStartedAt(DateTime.now());
                                                             state.setStoppedAt(newDateTime);
+                                                            if (state.getStoppedAt().isBefore(state.getStartedAt()))
+                                                              state.setStartedAt(state.getStoppedAt());
+                                                            else if (!state.hasStartedTime())
+                                                              state.setStartedAt(DateTime.now());
                                                             api.setTrackerState(state);
                                                           });
                                                         },
