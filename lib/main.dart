@@ -9,8 +9,12 @@ import 'package:intl/intl.dart';
 import 'package:time_tracker/api.dart' as api;
 import 'package:time_tracker/data.dart';
 
+import 'helpers.dart';
+
 const Color green = Color.fromRGBO(91, 182, 91, 1);
 const Color red = Color.fromRGBO(218, 78, 73, 1);
+final DateFormat hoursSeconds = DateFormat("HH:mm");
+final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 
 void main() => runApp(TimeTrackerApp());
 
@@ -32,6 +36,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   CupertinoSuggestionsBoxController _projectSuggestion = CupertinoSuggestionsBoxController();
   FocusNode _projectFocus = FocusNode();
   FocusNode _taskFocus = FocusNode();
+  FocusNode _commentFocus = FocusNode();
 
   _TimeTrackerAppState() {
     _refresh();
@@ -48,11 +53,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   }
 
   void updateInputs() {
-    if (state.project is StateProject) {
-      _project.text = "${state.project.customer}: ${state.project.name}";
-    } else {
-      _project.text = "";
-    }
+    _project.text = state.project is StateProject ? state.project.title : "";
     _task.text = state.task_name;
     _comment.text = state.comment;
   }
@@ -61,17 +62,17 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   Widget build(BuildContext context) {
     return CupertinoApp(
       title: 'Papierkram.de TimeTracker',
-      theme: CupertinoThemeData(
-        primaryColor: Color.fromRGBO(185, 213, 222, 1),
-        primaryContrastingColor: Color.fromRGBO(0, 59, 78, 1),
-        barBackgroundColor: Color.fromRGBO(0, 59, 78, 1),
-        textTheme: CupertinoTextThemeData(
-          textStyle: TextStyle(
+      theme: const CupertinoThemeData(
+        primaryColor: const Color.fromRGBO(185, 213, 222, 1),
+        primaryContrastingColor: const Color.fromRGBO(0, 59, 78, 1),
+        barBackgroundColor: const Color.fromRGBO(0, 59, 78, 1),
+        textTheme: const CupertinoTextThemeData(
+          textStyle: const TextStyle(
             color: CupertinoColors.white,
             fontSize: 17,
           ),
         ),
-        scaffoldBackgroundColor: Color.fromRGBO(0, 102, 136, 1),
+        scaffoldBackgroundColor: const Color.fromRGBO(0, 102, 136, 1),
       ),
       home: state != null
           ? CupertinoTabScaffold(
@@ -79,27 +80,27 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
               tabBar: CupertinoTabBar(
                 items: <BottomNavigationBarItem>[
                   BottomNavigationBarItem(
-                    icon: Icon(
-                      IconData(
+                    icon: const Icon(
+                      const IconData(
                         0xF2FD,
                         fontFamily: CupertinoIcons.iconFont,
                         fontPackage: CupertinoIcons.iconFontPackage,
                         matchTextDirection: true,
                       ),
                     ),
-                    title: Text('Tracken'),
+                    title: const Text('Tracken'),
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.pen),
-                    title: Text('Zeiterfassung'),
+                    icon: const Icon(CupertinoIcons.pen),
+                    title: const Text('Zeiterfassung'),
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.clock),
-                    title: Text('Buchungen'),
+                    icon: const Icon(CupertinoIcons.clock),
+                    title: const Text('Buchungen'),
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(CupertinoIcons.settings),
-                    title: Text('Zugangsdaten'),
+                    icon: const Icon(CupertinoIcons.settings),
+                    title: const Text('Zugangsdaten'),
                   ),
                 ],
               ),
@@ -119,10 +120,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                     children: <Widget>[
                                       Text(state.task_name),
                                       Text(
-                                        state.project is StateProject
-                                            ? "${state.project.customer}:"
-                                                " ${state.project.name}"
-                                            : "",
+                                        state.project is StateProject ? state.project.title : "",
                                       ),
                                     ],
                                   ),
@@ -144,12 +142,12 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                     return CupertinoTabView(
                       builder: (BuildContext context) {
                         return ListView(
-                          physics: ClampingScrollPhysics(),
+                          physics: const ClampingScrollPhysics(),
                           children: <Widget>[
                             Center(
-                              child: Padding(
+                              child: const Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(
+                                child: const Text(
                                   "Zeiterfassung",
                                   textScaleFactor: 2,
                                 ),
@@ -178,7 +176,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                   return Padding(
                                     padding: const EdgeInsets.all(4.0),
                                     child: Text(
-                                      "${itemData.customer.name}: ${itemData.name}",
+                                      itemData.title,
                                       style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                                     ),
                                   );
@@ -231,6 +229,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoTextField(
                                 controller: _comment,
+                                focusNode: _commentFocus,
                                 autofocus: state.project != null && _task.text.isNotEmpty && _comment.text.isEmpty,
                                 placeholder: "Kommentar",
                                 maxLines: null,
@@ -247,32 +246,32 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                 decoration: BoxDecoration(
                                   boxShadow: state.getStatus()
                                       ? [
-                                          BoxShadow(color: Color.fromRGBO(209, 208, 203, 1)),
+                                          const BoxShadow(color: const Color.fromRGBO(209, 208, 203, 1)),
                                         ]
-                                      : [],
-                                  border: Border(
-                                    top: BorderSide(
+                                      : const [],
+                                  border: const Border(
+                                    top: const BorderSide(
                                       color: CupertinoColors.lightBackgroundGray,
                                       style: BorderStyle.solid,
                                       width: 0.0,
                                     ),
-                                    bottom: BorderSide(
+                                    bottom: const BorderSide(
                                       color: CupertinoColors.lightBackgroundGray,
                                       style: BorderStyle.solid,
                                       width: 0.0,
                                     ),
-                                    left: BorderSide(
+                                    left: const BorderSide(
                                       color: CupertinoColors.lightBackgroundGray,
                                       style: BorderStyle.solid,
                                       width: 0.0,
                                     ),
-                                    right: BorderSide(
+                                    right: const BorderSide(
                                       color: CupertinoColors.lightBackgroundGray,
                                       style: BorderStyle.solid,
                                       width: 0.0,
                                     ),
                                   ),
-                                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                                  borderRadius: const BorderRadius.all(Radius.circular(4.0)),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -280,8 +279,8 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                     children: <Widget>[
                                       Row(
                                         children: <Widget>[
-                                          Icon(
-                                            IconData(
+                                          const Icon(
+                                            const IconData(
                                               0xF2D1,
                                               fontFamily: CupertinoIcons.iconFont,
                                               fontPackage: CupertinoIcons.iconFontPackage,
@@ -292,7 +291,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                           GestureDetector(
                                             child: Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text(DateFormat("dd.MM.yyyy").format(state.getStartedAt())),
+                                              child: Text(dayMonthYear.format(state.getStartedAt())),
                                             ),
                                             onTap: () {
                                               if (!state.getStatus()) {
@@ -308,27 +307,11 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                         onDateTimeChanged: (DateTime newDateTime) {
                                                           setState(() {
                                                             state.setManualTimeChange(true);
-                                                            state.setPausedDuration(Duration());
-                                                            DateTime started = state.getStartedAt();
-                                                            state.setStartedAt(DateTime(
-                                                                newDateTime.year,
-                                                                newDateTime.month,
-                                                                newDateTime.day,
-                                                                started.hour,
-                                                                started.minute,
-                                                                started.second,
-                                                                started.millisecond,
-                                                                started.microsecond));
-                                                            DateTime stopped = state.getStoppedAt();
-                                                            state.setStoppedAt(DateTime(
-                                                                newDateTime.year,
-                                                                newDateTime.month,
-                                                                newDateTime.day,
-                                                                stopped.hour,
-                                                                stopped.minute,
-                                                                stopped.second,
-                                                                stopped.millisecond,
-                                                                stopped.microsecond));
+                                                            state.setPausedDuration(const Duration());
+                                                            state.setStartedAt(
+                                                                setDay(state.getStartedAt(), newDateTime));
+                                                            state.setStoppedAt(
+                                                                setDay(state.getStoppedAt(), newDateTime));
                                                             api.setTrackerState(state);
                                                           });
                                                         },
@@ -343,14 +326,14 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                       ),
                                       Row(
                                         children: <Widget>[
-                                          Icon(
+                                          const Icon(
                                             CupertinoIcons.time_solid,
                                             color: CupertinoColors.white,
                                           ),
                                           GestureDetector(
                                             child: Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text(DateFormat("HH:mm").format(state.getStartedAt())),
+                                              child: Text(hoursSeconds.format(state.getStartedAt())),
                                             ),
                                             onTap: () {
                                               if (!state.getStatus()) {
@@ -366,7 +349,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                         onDateTimeChanged: (DateTime newDateTime) {
                                                           setState(() {
                                                             state.setManualTimeChange(true);
-                                                            state.setPausedDuration(Duration());
+                                                            state.setPausedDuration(const Duration());
                                                             state.setStartedAt(newDateTime);
                                                             if (state.getStartedAt().isAfter(state.getStoppedAt()))
                                                               state.setStoppedAt(state.getStartedAt());
@@ -382,12 +365,12 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                               }
                                             },
                                           ),
-                                          Padding(
+                                          const Padding(
                                             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                            child: Text("bis"),
+                                            child: const Text("bis"),
                                           ),
                                           GestureDetector(
-                                            child: Text(DateFormat("HH:mm").format(state.getEndedAt())),
+                                            child: Text(hoursSeconds.format(state.getEndedAt())),
                                             onTap: () {
                                               if (!state.getStatus()) {
                                                 showCupertinoModalPopup<void>(
@@ -402,7 +385,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                                         onDateTimeChanged: (DateTime newDateTime) {
                                                           setState(() {
                                                             state.setManualTimeChange(true);
-                                                            state.setPausedDuration(Duration());
+                                                            state.setPausedDuration(const Duration());
                                                             state.setStoppedAt(newDateTime);
                                                             if (state.getStoppedAt().isBefore(state.getStartedAt()))
                                                               state.setStartedAt(state.getStoppedAt());
@@ -442,7 +425,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoButton.filled(
-                                child: Text("Buchen"),
+                                child: const Text("Buchen"),
                                 onPressed: state.getStatus()
                                     ? null
                                     : () async {
@@ -461,14 +444,14 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoButton.filled(
-                                child: Text("Verwerfen"),
+                                child: const Text("Verwerfen"),
                                 onPressed: () {
                                   state.hasStartedTime() || state.hasStoppedTime()
                                       ? showCupertinoDialog(
                                           context: context,
                                           builder: (BuildContext context) => CupertinoAlertDialog(
                                             title: Icon(
-                                              IconData(
+                                              const IconData(
                                                 0xF3BC,
                                                 fontFamily: CupertinoIcons.iconFont,
                                                 fontPackage: CupertinoIcons.iconFontPackage,
@@ -476,11 +459,11 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                               ),
                                               color: CupertinoTheme.of(context).primaryContrastingColor,
                                             ),
-                                            content: Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
+                                            content: const Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
                                             actions: [
                                               CupertinoDialogAction(
                                                 isDefaultAction: true,
-                                                child: Text(
+                                                child: const Text(
                                                   "OK",
                                                 ),
                                                 onPressed: () {
@@ -494,7 +477,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                                               ),
                                               CupertinoDialogAction(
                                                 isDefaultAction: true,
-                                                child: Text(
+                                                child: const Text(
                                                   "Abbrechen",
                                                 ),
                                                 onPressed: () {
@@ -528,7 +511,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                             padding: const EdgeInsets.symmetric(
                               vertical: 16.0,
                             ),
-                            physics: ClampingScrollPhysics(),
+                            physics: const ClampingScrollPhysics(),
                             children: getEntryWidgets(),
                           ),
                         );
@@ -541,7 +524,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                       },
                     );
                   default:
-                    return Text("Something went wrong");
+                    return const Text("Something went wrong");
                 }
               },
             )
@@ -559,7 +542,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
             context: context,
             builder: (BuildContext context) => CupertinoAlertDialog(
               title: Icon(
-                IconData(
+                const IconData(
                   0xF3BC,
                   fontFamily: CupertinoIcons.iconFont,
                   fontPackage: CupertinoIcons.iconFontPackage,
@@ -567,11 +550,11 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                 ),
                 color: CupertinoTheme.of(context).primaryContrastingColor,
               ),
-              content: Text("Sollen die manuellen Änderungen zurückgesetzt werden?"),
+              content: const Text("Sollen die manuellen Änderungen zurückgesetzt werden?"),
               actions: [
                 CupertinoDialogAction(
                   isDefaultAction: true,
-                  child: Text(
+                  child: const Text(
                     "OK",
                   ),
                   onPressed: () {
@@ -582,7 +565,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                 ),
                 CupertinoDialogAction(
                   isDefaultAction: true,
-                  child: Text(
+                  child: const Text(
                     "Abbrechen",
                   ),
                   onPressed: () {
@@ -620,7 +603,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: Icon(
-          IconData(
+          const IconData(
             0xF3BC,
             fontFamily: CupertinoIcons.iconFont,
             fontPackage: CupertinoIcons.iconFontPackage,
@@ -632,7 +615,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
         actions: [
           CupertinoDialogAction(
             isDefaultAction: true,
-            child: Text(
+            child: const Text(
               "OK",
             ),
             onPressed: () {
@@ -647,9 +630,9 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
   List<Widget> getEntryWidgets() {
     List<Widget> widgets = [
       Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
+        decoration: const BoxDecoration(
+          border: const Border(
+            bottom: const BorderSide(
               width: 1,
               color: CupertinoColors.lightBackgroundGray,
             ),
@@ -659,7 +642,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
           padding: const EdgeInsets.all(9.0),
           child: Row(
             children: <Widget>[
-              Text(
+              const Text(
                 "Heute",
                 textScaleFactor: 1.5,
               ),
@@ -685,6 +668,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
             api.setTrackerState(state);
             updateInputs();
             _tabController.index = 1;
+            FocusScope.of(context).requestFocus(_commentFocus);
           });
         },
       ));
@@ -693,17 +677,17 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
     for (Entry e in state.getTodaysEntries()) addRecentTaskWidget(e);
 
     widgets.add(Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
+      decoration: const BoxDecoration(
+        border: const Border(
+          bottom: const BorderSide(
             width: 1,
             color: CupertinoColors.lightBackgroundGray,
           ),
         ),
       ),
-      child: Padding(
+      child: const Padding(
         padding: const EdgeInsets.all(9.0),
-        child: Text(
+        child: const Text(
           "Frühere Einträge",
           textScaleFactor: 1.5,
         ),
@@ -741,14 +725,14 @@ class _CredentialsPageState extends State<CredentialsPage> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: ListView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         children: <Widget>[
-          Center(
-            child: Padding(
+          const Center(
+            child: const Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
+              child: const Text(
                 "Ihre Papierkram.de Zugangsdaten",
                 textScaleFactor: 2,
               ),
@@ -819,14 +803,14 @@ class _CredentialsPageState extends State<CredentialsPage> {
                     showCupertinoDialog(
                       context: context,
                       builder: (BuildContext context) => CupertinoAlertDialog(
-                        title: Text("Ein Fehler ist beim Login aufgetreten"),
+                        title: const Text("Ein Fehler ist beim Login aufgetreten"),
                         content: Text(e.message),
                         actions: [
                           CupertinoDialogAction(
                             isDefaultAction: true,
-                            child: Text(
+                            child: const Text(
                               "Schließen",
-                              style: TextStyle(color: CupertinoColors.destructiveRed),
+                              style: const TextStyle(color: CupertinoColors.destructiveRed),
                             ),
                             onPressed: () {
                               Navigator.of(context, rootNavigator: true).pop("Cancel");
@@ -865,9 +849,9 @@ class RecentTasks extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              "${entry.customer_name}: ${entry.project_name}",
+              entry.title,
               textScaleFactor: 0.75,
-              style: TextStyle(
+              style: const TextStyle(
                 color: CupertinoColors.lightBackgroundGray,
               ),
             ),
@@ -927,22 +911,22 @@ class TrackingLabel extends StatefulWidget {
 }
 
 class _TrackingLabelState extends State<TrackingLabel> {
-  Duration _d = Duration();
   Timer _t;
 
   _TrackingLabelState() {
-    this._t = Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      setState(() {
-        _d = widget.state.getEndedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
-      });
+    this._t = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      if (widget.state.getStatus()) setState(() {});
     });
   }
+
+  Duration get duration =>
+      widget.state.getEndedAt().difference(widget.state.getStartedAt()) - widget.state.getPausedDuration();
 
   @override
   Widget build(BuildContext context) {
     return Text(
       prettyDuration(
-        _d,
+        duration,
         abbreviated: true,
       ),
       textScaleFactor: 1.5,
