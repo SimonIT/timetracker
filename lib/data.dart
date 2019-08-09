@@ -29,6 +29,8 @@ class Project {
 
   Project();
 
+  String get title => "${customer.name}: $name";
+
   factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProjectToJson(this);
@@ -175,7 +177,7 @@ class TrackerState {
   Duration getPausedDuration() {
     return this.paused_duration != null && this.paused_duration != "null"
         ? Duration(milliseconds: int.parse(this.paused_duration))
-        : Duration();
+        : const Duration();
   }
 
   void setToEntry(Entry entry) {
@@ -239,6 +241,8 @@ class StateProject {
 
   StateProject();
 
+  String get title => "$customer: $name";
+
   factory StateProject.fromJson(Map<String, dynamic> json) => _$StateProjectFromJson(json);
 
   Map<String, dynamic> toJson() => _$StateProjectToJson(this);
@@ -259,6 +263,8 @@ class Entry {
   int task_duration;
 
   Entry();
+
+  String get title => "$customer_name: $project_name";
 
   DateTime getTimeStamp() {
     return DateTime.fromMillisecondsSinceEpoch(this.timestamp * 1000);
