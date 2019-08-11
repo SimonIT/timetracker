@@ -245,7 +245,7 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   boxShadow: state.getStatus()
-                                      ? [
+                                      ? const [
                                           const BoxShadow(color: const Color.fromRGBO(209, 208, 203, 1)),
                                         ]
                                       : const [],
@@ -704,7 +704,7 @@ class CredentialsPage extends StatefulWidget {
   final TextEditingController _company;
   final TextEditingController _user;
   final TextEditingController _password;
-  final Function _refresh;
+  final Function() _refresh;
 
   CredentialsPage(this._company, this._user, this._password, this._refresh, {Key key}) : super(key: key) {
     api.loadCredentials().then((bool success) {
@@ -832,7 +832,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
 
 class RecentTasks extends StatelessWidget {
   final Entry entry;
-  final Function onPressed;
+  final Function() onPressed;
 
   RecentTasks({
     @required this.entry,
@@ -879,7 +879,7 @@ class RecentTasks extends StatelessWidget {
 }
 
 class TrackingButton extends StatelessWidget {
-  final Function onPressed;
+  final Function() onPressed;
   final bool tracking;
 
   const TrackingButton({
