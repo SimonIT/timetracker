@@ -2,7 +2,7 @@
 TimeTracker
 ==============
 
-[![Build Status](https://travis-ci.com/SimonIT/TimeTracker.svg?branch=master)](https://travis-ci.com/SimonIT/TimeTracker)
+[![Build Status](https://travis-ci.com/SimonIT/time_tracker.svg?branch=master)](https://travis-ci.com/SimonIT/time_tracker)
 
 Papierkram.de - TimeTracker as flutter app
 
