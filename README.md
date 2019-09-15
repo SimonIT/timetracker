@@ -1,4 +1,4 @@
-![alt text](assets/images/icon.png "TimeTracker Logo")
+![Icon](assets/images/icon_android.png "TimeTracker Logo")
 TimeTracker
 ==============
 
