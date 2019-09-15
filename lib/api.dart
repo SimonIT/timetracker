@@ -15,11 +15,11 @@ String userName;
 String tenantName;
 
 String baseUrl;
-//String apiDomain = ".odacer.com:3000";  // DEV
-String apiDomain = ".papierkram.de"; // LIVE
-String apiPath = "/api/v1/";
+//const String apiDomain = ".odacer.com:3000";  // DEV
+const String apiDomain = ".papierkram.de"; // LIVE
+const String apiPath = "/api/v1/";
 
-final Map<String, String> headers = {
+const Map<String, String> headers = {
   'Accept': '*/*',
   'Content-Type': 'application/x-www-form-urlencoded',
 };

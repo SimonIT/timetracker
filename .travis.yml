@@ -10,8 +10,8 @@ matrix:
         components:
           - tools
           - platform-tools
-          - build-tools-28.0.3
-          - android-28
+          - build-tools-29.0.3
+          - android-29
       jdk: oraclejdk8
       sudo: false
       addons:
@@ -53,7 +53,7 @@ deploy:
     - build/app/outputs/apk/release/app-release.apk
     - build/ios/iphoneos/app.ipa
   on:
-    repo: SimonIT/TimeTracker
+    repo: SimonIT/time_tracker
     tags: true
     all_branches: true
 
