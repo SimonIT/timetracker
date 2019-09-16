@@ -53,7 +53,7 @@ deploy:
     - build/app/outputs/apk/release/app-release.apk
     - build/ios/iphoneos/app.ipa
   on:
-    repo: SimonIT/time_tracker
+    repo: SimonIT/timetracker
     tags: true
     all_branches: true
 

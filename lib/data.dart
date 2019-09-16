@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:time_tracker/helpers.dart';
+import 'package:timetracker/helpers.dart';
 
 part 'data.g.dart';
 

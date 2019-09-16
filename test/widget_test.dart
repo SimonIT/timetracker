@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:time_tracker/main.dart';
+import 'package:timetracker/main.dart';
 
 void main() {
   testWidgets('', (WidgetTester tester) async {

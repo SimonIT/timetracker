@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:time_tracker/data.dart';
+import 'package:timetracker/data.dart';
 
 String authCompany;
 String authUsername;
