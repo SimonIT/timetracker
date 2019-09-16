@@ -6,8 +6,8 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/material_header.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import 'package:time_tracker/api.dart' as api;
-import 'package:time_tracker/data.dart';
+import 'package:timetracker/api.dart' as api;
+import 'package:timetracker/data.dart';
 
 import 'helpers.dart';
 
