@@ -857,7 +857,7 @@ class RecentTasks extends StatelessWidget {
             ),
             Row(
               children: <Widget>[
-                Text(entry.task_name),
+                Expanded(child: Text(entry.task_name)),
                 Text(
                   prettyDuration(
                     Duration(
