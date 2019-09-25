@@ -157,7 +157,7 @@ Future<void> postTrackedTime(TrackerState state) async {
       Map<String, dynamic> apiResponse = jsonDecode(result.body);
       if (apiResponse["success"] != "true") throw Exception();
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   }
 }
@@ -172,7 +172,7 @@ Future<List<Company>> loadCustomers() async {
           .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
           .toList();
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   } else {
     return null;
@@ -191,7 +191,7 @@ Future<List<Project>> loadProjects({String searchPattern}) async {
           .map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
           .toList();
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   } else {
     return null;
@@ -206,7 +206,7 @@ Future<Project> loadProject(int id) async {
     if (result.statusCode == 200) {
       return Project.fromJson(jsonDecode(result.body));
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   } else {
     return null;
@@ -223,7 +223,7 @@ Future<List<Task>> loadTasks() async {
           .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
           .toList();
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   } else {
     return null;
