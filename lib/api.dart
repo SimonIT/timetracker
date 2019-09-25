@@ -20,7 +20,7 @@ const String apiDomain = ".papierkram.de"; // LIVE
 const String apiPath = "/api/v1/";
 
 const Map<String, String> headers = {
-  'Accept': '*/*',
+  'Accept': 'application/json',
   'Content-Type': 'application/x-www-form-urlencoded',
 };
 final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
