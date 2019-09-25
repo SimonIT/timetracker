@@ -426,11 +426,34 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
                               padding: const EdgeInsets.all(8.0),
                               child: CupertinoButton.filled(
                                 child: const Text("Buchen"),
+                                disabledColor: Color.fromRGBO(91, 148, 222, 1),
                                 onPressed: state.getStatus()
                                     ? null
                                     : () async {
                                         if (state.task_name.isNotEmpty) {
-                                          await api.postTrackedTime(state);
+                                          try {
+                                            await api.postTrackedTime(state);
+                                          } catch (e) {
+                                            showCupertinoDialog(
+                                              context: context,
+                                              builder: (BuildContext context) => CupertinoAlertDialog(
+                                                title: const Text("Ein Fehler ist beim Buchen aufgetreten"),
+                                                content: Text(e.message),
+                                                actions: [
+                                                  CupertinoDialogAction(
+                                                    isDefaultAction: true,
+                                                    child: const Text(
+                                                      "Schließen",
+                                                      style: const TextStyle(color: CupertinoColors.destructiveRed),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.of(context, rootNavigator: true).pop("Cancel");
+                                                    },
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          }
                                           state.empty();
                                           await api.setTrackerState(state);
                                           _refresh();
