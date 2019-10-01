@@ -27,7 +27,7 @@ final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 Future<void> saveSettingsCheckToken(String company, String username, String password) async {
   http.Response result = await http.post(
-    'https://$company$apiDomain${apiPath}auth',
+    'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth',
     body: "email=${Uri.encodeQueryComponent(username)}&password=${Uri.encodeQueryComponent(password)}",
     headers: headers,
   );
@@ -84,7 +84,7 @@ Future<bool> loadCredentials() async {
     authCompany = credentials['company'];
     authUsername = credentials['username'];
     authToken = credentials['token'];
-    baseUrl = "https://$authCompany$apiDomain$apiPath";
+    baseUrl = "https://${Uri.encodeComponent(authCompany)}$apiDomain$apiPath";
     return true;
   }
 }
@@ -97,7 +97,7 @@ Future<TrackerState> loadTrackerState() async {
     if (result.statusCode == 200) {
       return TrackerState.fromJson(jsonDecode(result.body));
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   } else {
     return null;
@@ -134,7 +134,7 @@ Future<void> setTrackerState(TrackerState state) async {
       Map<String, dynamic> apiResponse = jsonDecode(result.body);
       if (apiResponse["success"] != "true") throw Exception();
     } else {
-      throw Exception();
+      throw Exception(result.reasonPhrase);
     }
   }
 }
