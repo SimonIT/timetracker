@@ -1,5 +1,4 @@
-![Icon](assets/images/icon_android.png "TimeTracker Logo")
-TimeTracker
+TimeTracker![Icon](assets/images/icon_android.png "TimeTracker Logo")
 ==============
 
 [![Build Status](https://travis-ci.com/SimonIT/timetracker.svg?branch=master)](https://travis-ci.com/SimonIT/timetracker)
@@ -16,4 +15,4 @@ This Open Source App bringt den Papierkram.de TimeTracker on your Smartphone. Ti
 
 ## Contributing
 
-PRs are welcome 
+PRs are welcome
