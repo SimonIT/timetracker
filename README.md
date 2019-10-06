@@ -1,6 +1,6 @@
 # TimeTracker
 
-<img src="assets/images/icon_android.png" width="48" align="left">
+<img src="assets/images/icon_android.png" width="65" align="left">
 
 [![Build Status](https://travis-ci.com/SimonIT/timetracker.svg?branch=master)](https://travis-ci.com/SimonIT/timetracker)
 
