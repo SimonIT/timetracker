@@ -6,9 +6,9 @@ TimeTracker
 
 Papierkram.de - TimeTracker as flutter app
 
-This app brings the TimeTracker desktop application on your smartphone.
+This Open Source App bringt den Papierkram.de TimeTracker on your Smartphone. Time , Booking are full supported. This app is compatible with the official application. In this app you can start for example the tracker and stop it in the desktop application.
 
-⚠️This is an unofficial application for Papierkram.de. This application is not associated in any way with odacer finanzsoftware GmbH. Papierkram.de is all property of odacer finanzsoftware GmbH or their respectful owner. All rights reserved. 
+⚠️This is an unofficial application for Papierkram.de. This application is not associated in any way with odacer finanzsoftware GmbH. Papierkram.de is all property of odacer finanzsoftware GmbH or their respectful owner. All rights reserved.
 
 ## Download
 
