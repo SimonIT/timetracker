@@ -1,4 +1,5 @@
-TimeTracker![Icon](assets/images/icon_android.png "TimeTracker Logo")
+TimeTracker!
+<img src="assets/images/icon_android.png" width="48">
 ==============
 
 [![Build Status](https://travis-ci.com/SimonIT/timetracker.svg?branch=master)](https://travis-ci.com/SimonIT/timetracker)
