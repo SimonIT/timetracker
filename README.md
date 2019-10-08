@@ -15,7 +15,7 @@ This open source app brings Papierkram.de to your smartphone. This includes the 
 
 ## Disclaimer
 
-⚠️This is an unofficial application for Papierkram.de. This application is not associated in any way with odacer finanzsoftware GmbH. Papierkram.de is all property of odacer finanzsoftware GmbH or their respectful owner. All rights reserved.
+⚠️This is an unofficial application for Papierkram.de. This application is not associated in any way with odacer Finanzsoftware GmbH. Papierkram.de is all property of odacer Finanzsoftware GmbH or their respectful owner. All rights reserved.
 
 ## Download
 
