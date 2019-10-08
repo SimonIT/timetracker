@@ -8,7 +8,7 @@ Papierkram.de - TimeTracker as flutter app
 
 ## About
 
-This open source app brings Papierkram.de on your smartphone. This includes the following:
+This open source app brings Papierkram.de to your smartphone. This includes the following:
 * Functionality such as time tracking and documentation are fully supported.
 * The app is compatible with the official application.
 * Your timers are synchronized between app and desktop application. Start a timer in the app, stop it in the desktop application, just like that.
@@ -20,7 +20,7 @@ This open source app brings Papierkram.de on your smartphone. This includes the 
 ## Download
 
 Find the app in your Google Play store:
-<a href='https://play.google.com/store/apps/details?id=com.papierkram.timetracker&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' width="200px"/></a>
+<a href='https://play.google.com/store/apps/details?id=com.papierkram.timetracker&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' width="200px" align="left"/></a>
 
 ## Contributing
 
