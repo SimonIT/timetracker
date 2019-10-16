@@ -1,7 +1,10 @@
+import 'package:html_unescape/html_unescape_small.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:timetracker/helpers.dart';
 
 part 'data.g.dart';
+
+HtmlUnescape _unescape = HtmlUnescape();
 
 @JsonSerializable()
 class Project {
@@ -29,7 +32,7 @@ class Project {
 
   Project();
 
-  String get title => "${customer.name}: $name";
+  String get title => "${_unescape.convert(customer.name)}: $name";
 
   factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 
@@ -241,7 +244,7 @@ class StateProject {
 
   StateProject();
 
-  String get title => "$customer: $name";
+  String get title => "${_unescape.convert(customer)}: $name";
 
   factory StateProject.fromJson(Map<String, dynamic> json) => _$StateProjectFromJson(json);
 
@@ -264,7 +267,7 @@ class Entry {
 
   Entry();
 
-  String get title => "$customer_name: $project_name";
+  String get title => "${_unescape.convert(customer_name)}: $project_name";
 
   DateTime getTimeStamp() {
     return DateTime.fromMillisecondsSinceEpoch(this.timestamp * 1000);
