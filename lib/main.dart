@@ -789,15 +789,17 @@ class _CredentialsPageState extends State<CredentialsPage> {
               obscureText: !showPassword,
               onChanged: (value) {
                 setState(() {
-                  // needed for show password button
+                  if (value.isEmpty) showPassword = false;
                 });
               },
             ),
           ),
-          if (widget._password.text.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Row(
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: AnimatedCrossFade(
+              crossFadeState: widget._password.text.isNotEmpty ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+              duration: const Duration(milliseconds: 500),
+              firstChild: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   CupertinoSwitch(
@@ -812,7 +814,9 @@ class _CredentialsPageState extends State<CredentialsPage> {
                   const Text("Passwort anzeigen")
                 ],
               ),
+              secondChild: const SizedBox.shrink(),
             ),
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: CupertinoButton.filled(
