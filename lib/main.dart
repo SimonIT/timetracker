@@ -809,14 +809,14 @@ class _CredentialsPageState extends State<CredentialsPage> {
                     value: showPassword,
                     activeColor: green,
                   ),
-                  Text("Passwort anzeigen")
+                  const Text("Passwort anzeigen")
                 ],
               ),
             ),
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: CupertinoButton.filled(
-              child: Text("Speichern"),
+              child: const Text("Speichern"),
               onPressed: () async {
                 if (widget._password.text.isNotEmpty) {
                   try {
