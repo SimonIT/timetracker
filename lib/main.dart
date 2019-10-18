@@ -9,6 +9,7 @@ import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:timetracker/api.dart' as api;
 import 'package:timetracker/data.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'helpers.dart';
 
@@ -22,6 +23,7 @@ const BorderSide inputBorder = BorderSide(
 );
 final DateFormat hoursSeconds = DateFormat("HH:mm");
 final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
+final DateFormat dayMonth = DateFormat("dd.MM.");
 
 void main() => runApp(App());
 
@@ -543,12 +545,12 @@ class _TimeTrackerState extends State<TimeTracker> {
                   header: MaterialHeader(),
                   onRefresh: () => _refresh(context),
                   bottomBouncing: false,
-                  child: ListView(
+                  child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
                       vertical: 16.0,
                     ),
                     physics: const ClampingScrollPhysics(),
-                    children: getEntryWidgets(),
+                    child: getRecentEntryTable(),
                   ),
                 );
               },
@@ -590,6 +592,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                     api.deleteCredsFromLocalStore();
                     Navigator.of(context, rootNavigator: true).pop("Logout");
                   }),
+                  CSHeader("Einstellungen"),
+                  CSHeader("Weitere Infos"),
+                  CSLink("Quelltext", () => launch("https://github.com/SimonIT/timetracker")),
+                  CSLink("Kontakt", () => launch("mailto:simonit.orig@gmail.com")),
                 ]);
               },
             );
@@ -693,9 +699,13 @@ class _TimeTrackerState extends State<TimeTracker> {
     );
   }
 
-  List<Widget> getEntryWidgets() {
-    List<Widget> widgets = [
-      Container(
+  Table getRecentEntryTable() {
+    bool isLarge = MediaQuery.of(context).size.width > 479;
+    bool isLarger = MediaQuery.of(context).size.width > 767;
+    bool isLargest = MediaQuery.of(context).size.width > 991;
+
+    List<TableRow> recentEntries = [
+      TableRow(
         decoration: const BoxDecoration(
           border: const Border(
             bottom: const BorderSide(
@@ -704,45 +714,80 @@ class _TimeTrackerState extends State<TimeTracker> {
             ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(9.0),
-          child: Row(
-            children: <Widget>[
-              const Text(
+        children: <TableCell>[
+          TableCell(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: const Text(
                 "Heute",
                 textScaleFactor: 1.5,
               ),
-              Text(
+            ),
+          ),
+          TableCell(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
                 prettyDuration(
                   state.getTrackedToday(),
                   abbreviated: true,
                 ),
               ),
-            ],
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
           ),
-        ),
+          if (isLarge) TableCell(child: Container()),
+        ],
       ),
     ];
 
-    void addRecentTaskWidget(Entry e) {
-      widgets.add(RecentTasks(
-        entry: e,
-        onPressed: () {
-          setState(() {
-            state.setToEntry(e);
-            api.setTrackerState(state);
-            updateInputs();
-            _tabController.index = 1;
-            FocusScope.of(context).requestFocus(_commentFocus);
-          });
-        },
-      ));
+    void addRecentTaskRow(List<Entry> e) {
+      for (Entry e in e) {
+        recentEntries.add(TableRow(
+          children: <TableCell>[
+            TableCell(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      e.title,
+                      textScaleFactor: 0.75,
+                      style: const TextStyle(
+                        color: CupertinoColors.lightBackgroundGray,
+                      ),
+                    ),
+                    Text(e.task_name),
+                  ],
+                ),
+              ),
+            ),
+            TableCell(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  prettyDuration(
+                    e.getTaskDuration(),
+                    abbreviated: true,
+                  ),
+                ),
+              ),
+            ),
+            if (isLarge)
+              TableCell(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(dayMonth.format(e.getTimeStamp())),
+                ),
+              ),
+          ],
+        ));
+      }
     }
 
-    for (Entry e in state.getTodaysEntries()) addRecentTaskWidget(e);
+    addRecentTaskRow(state.getTodaysEntries());
 
-    widgets.add(Container(
+    recentEntries.add(TableRow(
       decoration: const BoxDecoration(
         border: const Border(
           bottom: const BorderSide(
@@ -751,18 +796,32 @@ class _TimeTrackerState extends State<TimeTracker> {
           ),
         ),
       ),
-      child: const Padding(
-        padding: const EdgeInsets.all(9.0),
-        child: const Text(
-          "Frühere Einträge",
-          textScaleFactor: 1.5,
+      children: <TableCell>[
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: const Text(
+              "Frühere Einträge",
+              textScaleFactor: 1.5,
+            ),
+          ),
         ),
-      ),
+        TableCell(child: Container()),
+        if (isLarge) TableCell(child: Container()),
+      ],
     ));
 
-    for (Entry e in state.getPreviousEntries()) addRecentTaskWidget(e);
+    addRecentTaskRow(state.getPreviousEntries());
 
-    return widgets;
+    return Table(
+      columnWidths: {
+        0: IntrinsicColumnWidth(),
+        1: FixedColumnWidth(90),
+        if (isLarge) 2: FixedColumnWidth(90),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.bottom,
+      children: recentEntries,
+    );
   }
 }
 
@@ -936,54 +995,6 @@ class _CredentialsPageState extends State<CredentialsPage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class RecentTasks extends StatelessWidget {
-  final Entry entry;
-  final Function() onPressed;
-
-  RecentTasks({
-    @required this.entry,
-    @required this.onPressed,
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      child: Padding(
-        padding: const EdgeInsets.all(9.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              entry.title,
-              textScaleFactor: 0.75,
-              style: const TextStyle(
-                color: CupertinoColors.lightBackgroundGray,
-              ),
-            ),
-            Row(
-              children: <Widget>[
-                Expanded(child: Text(entry.task_name)),
-                Text(
-                  prettyDuration(
-                    Duration(
-                      seconds: entry.task_duration,
-                    ),
-                    abbreviated: true,
-                  ),
-                ),
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            )
-          ],
-        ),
-      ),
-      behavior: HitTestBehavior.translucent,
-      onTap: onPressed,
     );
   }
 }

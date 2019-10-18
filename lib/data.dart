@@ -273,6 +273,10 @@ class Entry {
     return DateTime.fromMillisecondsSinceEpoch(this.timestamp * 1000);
   }
 
+  Duration getTaskDuration() {
+    return Duration(seconds: task_duration);
+  }
+
   factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
 
   Map<String, dynamic> toJson() => _$EntryToJson(this);
