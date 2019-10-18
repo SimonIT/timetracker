@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_cupertino_settings/flutter_cupertino_settings.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/material_header.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
@@ -13,43 +14,95 @@ import 'helpers.dart';
 
 const Color green = Color.fromRGBO(91, 182, 91, 1);
 const Color red = Color.fromRGBO(218, 78, 73, 1);
+const Color deactivatedGray = Color.fromRGBO(209, 208, 203, 1);
+const BorderSide inputBorder = BorderSide(
+  color: CupertinoColors.lightBackgroundGray,
+  style: BorderStyle.solid,
+  width: 0.0,
+);
 final DateFormat hoursSeconds = DateFormat("HH:mm");
 final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 
-void main() => runApp(TimeTrackerApp());
+void main() => runApp(App());
 
-class TimeTrackerApp extends StatefulWidget {
+class App extends StatelessWidget {
   @override
-  _TimeTrackerAppState createState() => _TimeTrackerAppState();
+  Widget build(BuildContext context) {
+    return CupertinoApp(
+      title: 'Papierkram.de TimeTracker',
+      theme: const CupertinoThemeData(
+          primaryColor: const Color.fromRGBO(185, 213, 222, 1),
+          primaryContrastingColor: const Color.fromRGBO(0, 59, 78, 1),
+          barBackgroundColor: const Color.fromRGBO(0, 59, 78, 1),
+          textTheme: const CupertinoTextThemeData(
+            textStyle: const TextStyle(
+              color: CupertinoColors.white,
+              fontSize: 17,
+            ),
+          ),
+          scaffoldBackgroundColor: const Color.fromRGBO(0, 102, 136, 1)),
+      home: CredentialsPage(),
+    );
+  }
 }
 
-class _TimeTrackerAppState extends State<TimeTrackerApp> {
+class TimeTracker extends StatefulWidget {
+  final TrackerState state;
+
+  TimeTracker({@required this.state});
+
+  @override
+  _TimeTrackerState createState() => _TimeTrackerState(state: state);
+}
+
+class _TimeTrackerState extends State<TimeTracker> {
   TrackerState state;
 
   CupertinoTabController _tabController = CupertinoTabController();
   TextEditingController _project = TextEditingController();
   TextEditingController _task = TextEditingController();
   TextEditingController _comment = TextEditingController();
-  TextEditingController _company = TextEditingController();
-  TextEditingController _user = TextEditingController();
-  TextEditingController _password = TextEditingController();
   CupertinoSuggestionsBoxController _projectSuggestion = CupertinoSuggestionsBoxController();
   FocusNode _projectFocus = FocusNode();
   FocusNode _taskFocus = FocusNode();
   FocusNode _commentFocus = FocusNode();
 
-  _TimeTrackerAppState() {
-    _refresh();
+  _TimeTrackerState({@required this.state}) {
+    updateInputs();
   }
 
-  Future<void> _refresh() async {
-    await api.authenticate();
-    api.loadTrackerState().then((TrackerState state) {
-      setState(() {
-        this.state = state;
-        if (state != null) updateInputs();
+  Future<void> _refresh(BuildContext context) async {
+    try {
+      await api.authenticate();
+      api.loadTrackerState().then((TrackerState state) {
+        setState(() {
+          this.state = state;
+          if (state != null) updateInputs();
+        });
       });
-    });
+    } catch (e) {
+      state = null;
+      Navigator.of(context, rootNavigator: true).pop("Logout");
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text("Ein Fehler ist beim Authentifizieren aufgetreten"),
+          content: Text(e.message),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text(
+                "Schließen",
+                style: const TextStyle(color: CupertinoColors.destructiveRed),
+              ),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop("Cancel");
+              },
+            )
+          ],
+        ),
+      );
+    }
   }
 
   void updateInputs() {
@@ -60,500 +113,490 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
-      title: 'Papierkram.de TimeTracker',
-      theme: const CupertinoThemeData(
-        primaryColor: const Color.fromRGBO(185, 213, 222, 1),
-        primaryContrastingColor: const Color.fromRGBO(0, 59, 78, 1),
-        barBackgroundColor: const Color.fromRGBO(0, 59, 78, 1),
-        textTheme: const CupertinoTextThemeData(
-          textStyle: const TextStyle(
-            color: CupertinoColors.white,
-            fontSize: 17,
+    return CupertinoTabScaffold(
+      controller: _tabController,
+      tabBar: CupertinoTabBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: const Icon(
+              const IconData(
+                0xF2FD,
+                fontFamily: CupertinoIcons.iconFont,
+                fontPackage: CupertinoIcons.iconFontPackage,
+                matchTextDirection: true,
+              ),
+            ),
+            title: const Text('Tracken'),
           ),
-        ),
-        scaffoldBackgroundColor: const Color.fromRGBO(0, 102, 136, 1),
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.pen),
+            title: const Text('Zeiterfassung'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.clock),
+            title: const Text('Buchungen'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.settings),
+            title: const Text('Zugangsdaten'),
+          ),
+        ],
       ),
-      home: state != null
-          ? CupertinoTabScaffold(
-              controller: _tabController,
-              tabBar: CupertinoTabBar(
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: const Icon(
-                      const IconData(
-                        0xF2FD,
-                        fontFamily: CupertinoIcons.iconFont,
-                        fontPackage: CupertinoIcons.iconFontPackage,
-                        matchTextDirection: true,
+      tabBuilder: (BuildContext context, int index) {
+        switch (index) {
+          case 0:
+            return CupertinoTabView(
+              builder: (BuildContext context) {
+                return Column(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              Text(state.task_name),
+                              Text(
+                                state.project is StateProject ? state.project.title : "",
+                              ),
+                            ],
+                          ),
+                        ),
+                        TrackingLabel(state),
+                      ],
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    ),
+                    TrackingButton(
+                      onPressed: () => track(context),
+                      tracking: state.getStatus(),
+                    ),
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
+                );
+              },
+            );
+          case 1:
+            return CupertinoTabView(
+              builder: (BuildContext context) {
+                return ListView(
+                  physics: const ClampingScrollPhysics(),
+                  children: <Widget>[
+                    Center(
+                      child: const Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Text(
+                          "Zeiterfassung",
+                          textScaleFactor: 2,
+                        ),
                       ),
                     ),
-                    title: const Text('Tracken'),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: const Icon(CupertinoIcons.pen),
-                    title: const Text('Zeiterfassung'),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: const Icon(CupertinoIcons.clock),
-                    title: const Text('Buchungen'),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: const Icon(CupertinoIcons.settings),
-                    title: const Text('Zugangsdaten'),
-                  ),
-                ],
-              ),
-              tabBuilder: (BuildContext context, int index) {
-                switch (index) {
-                  case 0:
-                    return CupertinoTabView(
-                      builder: (BuildContext context) {
-                        return Column(
-                          children: <Widget>[
-                            Row(
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: <Widget>[
-                                      Text(state.task_name),
-                                      Text(
-                                        state.project is StateProject ? state.project.title : "",
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                TrackingLabel(state),
-                              ],
-                              mainAxisAlignment: MainAxisAlignment.center,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CupertinoTypeAheadField(
+                        suggestionsBoxController: _projectSuggestion,
+                        textFieldConfiguration: CupertinoTextFieldConfiguration(
+                          enabled: state.project == null,
+                          controller: _project,
+                          focusNode: _projectFocus,
+                          autofocus: state.project == null,
+                          clearButtonMode: OverlayVisibilityMode.editing,
+                          placeholder: "Kunde/Projekt",
+                          autocorrect: false,
+                          maxLines: 1,
+                          style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+                        ),
+                        itemBuilder: (BuildContext context, Project itemData) {
+                          return Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Text(
+                              itemData.title,
+                              style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                             ),
-                            TrackingButton(
-                              onPressed: () => track(context),
-                              tracking: state.getStatus(),
-                            ),
-                          ],
-                          mainAxisAlignment: MainAxisAlignment.center,
-                        );
-                      },
-                    );
-                  case 1:
-                    return CupertinoTabView(
-                      builder: (BuildContext context) {
-                        return ListView(
-                          physics: const ClampingScrollPhysics(),
-                          children: <Widget>[
-                            Center(
-                              child: const Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: const Text(
-                                  "Zeiterfassung",
-                                  textScaleFactor: 2,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CupertinoTypeAheadField(
-                                suggestionsBoxController: _projectSuggestion,
-                                textFieldConfiguration: CupertinoTextFieldConfiguration(
-                                  enabled: state.project == null,
-                                  controller: _project,
-                                  focusNode: _projectFocus,
-                                  autofocus: state.project == null,
-                                  clearButtonMode: OverlayVisibilityMode.editing,
-                                  placeholder: "Kunde/Projekt",
-                                  autocorrect: false,
-                                  maxLines: 1,
-                                  style: state.project != null
-                                      ? TextStyle(
-                                          color: CupertinoTheme.of(context).primaryContrastingColor,
-                                        )
-                                      : null,
-                                ),
-                                itemBuilder: (BuildContext context, Project itemData) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(4.0),
-                                    child: Text(
-                                      itemData.title,
-                                      style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
-                                    ),
-                                  );
-                                },
-                                onSuggestionSelected: (Project suggestion) {
-                                  setState(() {
-                                    state.setProject(suggestion);
-                                    api.setTrackerState(state);
-                                    updateInputs();
-                                  });
-                                  FocusScope.of(context).requestFocus(_taskFocus);
-                                },
-                                suggestionsCallback: (String pattern) async {
-                                  List<Project> p = await api.loadProjects(searchPattern: pattern);
-                                  if (p.length == 1) {
-                                    _projectSuggestion.close();
-                                    setState(() {
-                                      state.setProject(p[0]);
-                                      api.setTrackerState(state);
-                                      updateInputs();
-                                    });
-                                    FocusScope.of(context).requestFocus(_taskFocus);
-                                  }
-                                  return p;
-                                },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CupertinoTextField(
-                                controller: _task,
-                                focusNode: _taskFocus,
-                                autofocus: state.project != null && _task.text.isEmpty,
-                                enabled: state.project != null,
-                                placeholder: "Aufgabe",
-                                autocorrect: false,
-                                maxLines: 1,
-                                onChanged: (String text) {
-                                  state.task_name = text;
-                                  api.setTrackerState(state);
-                                },
-                                style: state.project == null
-                                    ? TextStyle(
-                                        color: CupertinoTheme.of(context).primaryContrastingColor,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CupertinoTextField(
-                                controller: _comment,
-                                focusNode: _commentFocus,
-                                autofocus: state.project != null && _task.text.isNotEmpty && _comment.text.isEmpty,
-                                placeholder: "Kommentar",
-                                maxLines: null,
-                                keyboardType: TextInputType.multiline,
-                                onChanged: (String text) {
-                                  state.comment = text;
-                                  api.setTrackerState(state);
-                                },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  boxShadow: state.getStatus()
-                                      ? const [
-                                          const BoxShadow(color: const Color.fromRGBO(209, 208, 203, 1)),
-                                        ]
-                                      : const [],
-                                  border: const Border(
-                                    top: const BorderSide(
-                                      color: CupertinoColors.lightBackgroundGray,
-                                      style: BorderStyle.solid,
-                                      width: 0.0,
-                                    ),
-                                    bottom: const BorderSide(
-                                      color: CupertinoColors.lightBackgroundGray,
-                                      style: BorderStyle.solid,
-                                      width: 0.0,
-                                    ),
-                                    left: const BorderSide(
-                                      color: CupertinoColors.lightBackgroundGray,
-                                      style: BorderStyle.solid,
-                                      width: 0.0,
-                                    ),
-                                    right: const BorderSide(
-                                      color: CupertinoColors.lightBackgroundGray,
-                                      style: BorderStyle.solid,
-                                      width: 0.0,
-                                    ),
-                                  ),
-                                  borderRadius: const BorderRadius.all(Radius.circular(4.0)),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Row(
-                                        children: <Widget>[
-                                          const Icon(
-                                            const IconData(
-                                              0xF2D1,
-                                              fontFamily: CupertinoIcons.iconFont,
-                                              fontPackage: CupertinoIcons.iconFontPackage,
-                                              matchTextDirection: true,
-                                            ),
-                                            color: CupertinoColors.white,
-                                          ),
-                                          GestureDetector(
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text(dayMonthYear.format(state.getStartedAt())),
-                                            ),
-                                            onTap: () {
-                                              if (!state.getStatus()) {
-                                                showCupertinoModalPopup<void>(
-                                                  context: context,
-                                                  builder: (BuildContext context) {
-                                                    return _buildBottomPicker(
-                                                      CupertinoDatePicker(
-                                                        mode: CupertinoDatePickerMode.date,
-                                                        maximumDate: state.getEndedAt(),
-                                                        initialDateTime: state.getStartedAt(),
-                                                        use24hFormat: true,
-                                                        onDateTimeChanged: (DateTime newDateTime) {
-                                                          setState(() {
-                                                            state.setManualTimeChange(true);
-                                                            state.setPausedDuration(const Duration());
-                                                            state.setStartedAt(
-                                                                setDay(state.getStartedAt(), newDateTime));
-                                                            state.setStoppedAt(
-                                                                setDay(state.getStoppedAt(), newDateTime));
-                                                            api.setTrackerState(state);
-                                                          });
-                                                        },
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: <Widget>[
-                                          const Icon(
-                                            CupertinoIcons.time_solid,
-                                            color: CupertinoColors.white,
-                                          ),
-                                          GestureDetector(
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                              child: Text(hoursSeconds.format(state.getStartedAt())),
-                                            ),
-                                            onTap: () {
-                                              if (!state.getStatus()) {
-                                                showCupertinoModalPopup<void>(
-                                                  context: context,
-                                                  builder: (BuildContext context) {
-                                                    return _buildBottomPicker(
-                                                      CupertinoDatePicker(
-                                                        mode: CupertinoDatePickerMode.time,
-                                                        maximumDate: state.getEndedAt(),
-                                                        initialDateTime: state.getStartedAt(),
-                                                        use24hFormat: true,
-                                                        onDateTimeChanged: (DateTime newDateTime) {
-                                                          setState(() {
-                                                            state.setManualTimeChange(true);
-                                                            state.setPausedDuration(const Duration());
-                                                            state.setStartedAt(newDateTime);
-                                                            if (state.getStartedAt().isAfter(state.getStoppedAt()))
-                                                              state.setStoppedAt(state.getStartedAt());
-                                                            else if (!state.hasStoppedTime())
-                                                              state.setStoppedAt(DateTime.now());
-                                                            api.setTrackerState(state);
-                                                          });
-                                                        },
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                            },
-                                          ),
-                                          const Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                            child: const Text("bis"),
-                                          ),
-                                          GestureDetector(
-                                            child: Text(hoursSeconds.format(state.getEndedAt())),
-                                            onTap: () {
-                                              if (!state.getStatus()) {
-                                                showCupertinoModalPopup<void>(
-                                                  context: context,
-                                                  builder: (BuildContext context) {
-                                                    return _buildBottomPicker(
-                                                      CupertinoDatePicker(
-                                                        mode: CupertinoDatePickerMode.time,
-                                                        minimumDate: state.getStartedAt(),
-                                                        initialDateTime: state.getEndedAt(),
-                                                        use24hFormat: true,
-                                                        onDateTimeChanged: (DateTime newDateTime) {
-                                                          setState(() {
-                                                            state.setManualTimeChange(true);
-                                                            state.setPausedDuration(const Duration());
-                                                            state.setStoppedAt(newDateTime);
-                                                            if (state.getStoppedAt().isBefore(state.getStartedAt()))
-                                                              state.setStartedAt(state.getStoppedAt());
-                                                            else if (!state.hasStartedTime())
-                                                              state.setStartedAt(DateTime.now());
-                                                            api.setTrackerState(state);
-                                                          });
-                                                        },
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
+                          );
+                        },
+                        onSuggestionSelected: (Project suggestion) {
+                          setState(() {
+                            state.setProject(suggestion);
+                            api.setTrackerState(state);
+                            updateInputs();
+                          });
+                          FocusScope.of(context).requestFocus(_taskFocus);
+                        },
+                        suggestionsCallback: (String pattern) async {
+                          List<Project> p = await api.loadProjects(searchPattern: pattern);
+                          if (p.length == 1) {
+                            _projectSuggestion.close();
+                            setState(() {
+                              state.setProject(p[0]);
+                              api.setTrackerState(state);
+                              updateInputs();
+                            });
+                            FocusScope.of(context).requestFocus(_taskFocus);
+                          }
+                          return p;
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CupertinoTextField(
+                        controller: _task,
+                        focusNode: _taskFocus,
+                        autofocus: state.project != null && _task.text.isEmpty,
+                        enabled: state.project != null,
+                        placeholder: "Aufgabe",
+                        autocorrect: false,
+                        maxLines: 1,
+                        onChanged: (String text) {
+                          state.task_name = text;
+                          api.setTrackerState(state);
+                        },
+                        style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CupertinoTextField(
+                        controller: _comment,
+                        focusNode: _commentFocus,
+                        autofocus: state.project != null && _task.text.isNotEmpty && _comment.text.isEmpty,
+                        placeholder: "Kommentar",
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        onChanged: (String text) {
+                          state.comment = text;
+                          api.setTrackerState(state);
+                        },
+                        style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: state.getStatus()
+                              ? const [
+                                  const BoxShadow(color: deactivatedGray),
+                                ]
+                              : const [],
+                          border: const Border(
+                            top: inputBorder,
+                            bottom: inputBorder,
+                            left: inputBorder,
+                            right: inputBorder,
+                          ),
+                          borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: <Widget>[
+                              Row(
                                 children: <Widget>[
-                                  TrackingLabel(state),
-                                  TrackingButton(
-                                    onPressed: () => track(context),
-                                    tracking: state.getStatus(),
+                                  const Icon(
+                                    const IconData(
+                                      0xF2D1,
+                                      fontFamily: CupertinoIcons.iconFont,
+                                      fontPackage: CupertinoIcons.iconFontPackage,
+                                      matchTextDirection: true,
+                                    ),
+                                    color: CupertinoColors.white,
                                   ),
-                                ],
-                                mainAxisAlignment: MainAxisAlignment.center,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CupertinoButton.filled(
-                                child: const Text("Buchen"),
-                                disabledColor: Color.fromRGBO(91, 148, 222, 1),
-                                onPressed: state.getStatus()
-                                    ? null
-                                    : () async {
-                                        if (state.task_name.isNotEmpty) {
-                                          try {
-                                            await api.postTrackedTime(state);
-                                          } catch (e) {
-                                            showCupertinoDialog(
-                                              context: context,
-                                              builder: (BuildContext context) => CupertinoAlertDialog(
-                                                title: const Text("Ein Fehler ist beim Buchen aufgetreten"),
-                                                content: Text(e.message),
-                                                actions: [
-                                                  CupertinoDialogAction(
-                                                    isDefaultAction: true,
-                                                    child: const Text(
-                                                      "Schließen",
-                                                      style: const TextStyle(color: CupertinoColors.destructiveRed),
-                                                    ),
-                                                    onPressed: () {
-                                                      Navigator.of(context, rootNavigator: true).pop("Cancel");
-                                                    },
-                                                  )
-                                                ],
-                                              ),
-                                            );
-                                          }
-                                          state.empty();
-                                          await api.setTrackerState(state);
-                                          _refresh();
-                                          FocusScope.of(context).requestFocus(_projectFocus);
-                                        } else {
-                                          showNoProjectDialog(context);
-                                        }
-                                      },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CupertinoButton.filled(
-                                child: const Text("Verwerfen"),
-                                onPressed: () {
-                                  state.hasStartedTime() || state.hasStoppedTime()
-                                      ? showCupertinoDialog(
+                                  GestureDetector(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Text(dayMonthYear.format(state.getStartedAt())),
+                                    ),
+                                    onTap: () {
+                                      if (!state.getStatus()) {
+                                        showCupertinoModalPopup<void>(
                                           context: context,
-                                          builder: (BuildContext context) => CupertinoAlertDialog(
-                                            title: Icon(
-                                              const IconData(
-                                                0xF3BC,
-                                                fontFamily: CupertinoIcons.iconFont,
-                                                fontPackage: CupertinoIcons.iconFontPackage,
-                                                matchTextDirection: true,
-                                              ),
-                                              color: CupertinoTheme.of(context).primaryContrastingColor,
-                                            ),
-                                            content: const Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
-                                            actions: [
-                                              CupertinoDialogAction(
-                                                isDefaultAction: true,
-                                                child: const Text(
-                                                  "OK",
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context, rootNavigator: true).pop("OK");
+                                          builder: (BuildContext context) {
+                                            return _buildBottomPicker(
+                                              CupertinoDatePicker(
+                                                mode: CupertinoDatePickerMode.date,
+                                                maximumDate: state.getEndedAt(),
+                                                initialDateTime: state.getStartedAt(),
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newDateTime) {
                                                   setState(() {
-                                                    state.empty();
+                                                    state.setManualTimeChange(true);
+                                                    state.setPausedDuration(const Duration());
+                                                    state.setStartedAt(setDay(state.getStartedAt(), newDateTime));
+                                                    state.setStoppedAt(setDay(state.getStoppedAt(), newDateTime));
                                                     api.setTrackerState(state);
-                                                    updateInputs();
                                                   });
                                                 },
                                               ),
-                                              CupertinoDialogAction(
-                                                isDefaultAction: true,
-                                                child: const Text(
-                                                  "Abbrechen",
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context, rootNavigator: true).pop("Abbrechen");
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: <Widget>[
+                                  const Icon(
+                                    CupertinoIcons.time_solid,
+                                    color: CupertinoColors.white,
+                                  ),
+                                  GestureDetector(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Text(hoursSeconds.format(state.getStartedAt())),
+                                    ),
+                                    onTap: () {
+                                      if (!state.getStatus()) {
+                                        showCupertinoModalPopup<void>(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return _buildBottomPicker(
+                                              CupertinoDatePicker(
+                                                mode: CupertinoDatePickerMode.time,
+                                                maximumDate: state.getEndedAt(),
+                                                initialDateTime: state.getStartedAt(),
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newDateTime) {
+                                                  setState(() {
+                                                    state.setManualTimeChange(true);
+                                                    state.setPausedDuration(const Duration());
+                                                    state.setStartedAt(newDateTime);
+                                                    if (state.getStartedAt().isAfter(state.getStoppedAt()))
+                                                      state.setStoppedAt(state.getStartedAt());
+                                                    else if (!state.hasStoppedTime())
+                                                      state.setStoppedAt(DateTime.now());
+                                                    api.setTrackerState(state);
+                                                  });
                                                 },
                                               ),
-                                            ],
-                                          ),
-                                        )
-                                      : setState(() {
-                                          state.empty();
-                                          api.setTrackerState(state);
-                                          updateInputs();
-                                        });
-                                  FocusScope.of(context).requestFocus(_projectFocus);
-                                },
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  const Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: const Text("bis"),
+                                  ),
+                                  GestureDetector(
+                                    child: Text(hoursSeconds.format(state.getEndedAt())),
+                                    onTap: () {
+                                      if (!state.getStatus()) {
+                                        showCupertinoModalPopup<void>(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return _buildBottomPicker(
+                                              CupertinoDatePicker(
+                                                mode: CupertinoDatePickerMode.time,
+                                                minimumDate: state.getStartedAt(),
+                                                initialDateTime: state.getEndedAt(),
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newDateTime) {
+                                                  setState(() {
+                                                    state.setManualTimeChange(true);
+                                                    state.setPausedDuration(const Duration());
+                                                    state.setStoppedAt(newDateTime);
+                                                    if (state.getStoppedAt().isBefore(state.getStartedAt()))
+                                                      state.setStartedAt(state.getStoppedAt());
+                                                    else if (!state.hasStartedTime())
+                                                      state.setStartedAt(DateTime.now());
+                                                    api.setTrackerState(state);
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  case 2:
-                    return CupertinoTabView(
-                      builder: (BuildContext context) {
-                        return EasyRefresh(
-                          header: MaterialHeader(),
-                          onRefresh: _refresh,
-                          bottomBouncing: false,
-                          child: ListView(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                            ),
-                            physics: const ClampingScrollPhysics(),
-                            children: getEntryWidgets(),
+                            ],
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           ),
-                        );
-                      },
-                    );
-                  case 3:
-                    return CupertinoTabView(
-                      builder: (BuildContext context) {
-                        return CredentialsPage(_company, _user, _password, _refresh);
-                      },
-                    );
-                  default:
-                    return const Text("Something went wrong");
-                }
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: <Widget>[
+                          TrackingLabel(state),
+                          TrackingButton(
+                            onPressed: () => track(context),
+                            tracking: state.getStatus(),
+                          ),
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CupertinoButton.filled(
+                        child: const Text("Buchen"),
+                        disabledColor: deactivatedGray,
+                        onPressed: state.getStatus()
+                            ? null
+                            : () async {
+                                if (state.task_name.isNotEmpty) {
+                                  try {
+                                    await api.postTrackedTime(state);
+                                  } catch (e) {
+                                    showCupertinoDialog(
+                                      context: context,
+                                      builder: (BuildContext context) => CupertinoAlertDialog(
+                                        title: const Text("Ein Fehler ist beim Buchen aufgetreten"),
+                                        content: Text(e.message),
+                                        actions: [
+                                          CupertinoDialogAction(
+                                            isDefaultAction: true,
+                                            child: const Text(
+                                              "Schließen",
+                                              style: const TextStyle(color: CupertinoColors.destructiveRed),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context, rootNavigator: true).pop("Cancel");
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                  state.empty();
+                                  await api.setTrackerState(state);
+                                  _refresh(context);
+                                  FocusScope.of(context).requestFocus(_projectFocus);
+                                } else {
+                                  showNoProjectDialog(context);
+                                }
+                              },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CupertinoButton.filled(
+                        child: const Text("Verwerfen"),
+                        onPressed: () {
+                          state.hasStartedTime() || state.hasStoppedTime()
+                              ? showCupertinoDialog(
+                                  context: context,
+                                  builder: (BuildContext context) => CupertinoAlertDialog(
+                                    title: Icon(
+                                      const IconData(
+                                        0xF3BC,
+                                        fontFamily: CupertinoIcons.iconFont,
+                                        fontPackage: CupertinoIcons.iconFontPackage,
+                                        matchTextDirection: true,
+                                      ),
+                                      color: CupertinoTheme.of(context).primaryContrastingColor,
+                                    ),
+                                    content: const Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
+                                    actions: [
+                                      CupertinoDialogAction(
+                                        isDefaultAction: true,
+                                        child: const Text(
+                                          "OK",
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context, rootNavigator: true).pop("OK");
+                                          setState(() {
+                                            state.empty();
+                                            api.setTrackerState(state);
+                                            updateInputs();
+                                          });
+                                        },
+                                      ),
+                                      CupertinoDialogAction(
+                                        isDefaultAction: true,
+                                        child: const Text(
+                                          "Abbrechen",
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context, rootNavigator: true).pop("Abbrechen");
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : setState(() {
+                                  state.empty();
+                                  api.setTrackerState(state);
+                                  updateInputs();
+                                });
+                          FocusScope.of(context).requestFocus(_projectFocus);
+                        },
+                      ),
+                    )
+                  ],
+                );
               },
-            )
-          : CupertinoPageScaffold(
-              child: CredentialsPage(_company, _user, _password, _refresh),
-            ),
+            );
+          case 2:
+            return CupertinoTabView(
+              builder: (BuildContext context) {
+                return EasyRefresh(
+                  header: MaterialHeader(),
+                  onRefresh: () => _refresh(context),
+                  bottomBouncing: false,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16.0,
+                    ),
+                    physics: const ClampingScrollPhysics(),
+                    children: getEntryWidgets(),
+                  ),
+                );
+              },
+            );
+          case 3:
+            return CupertinoTabView(
+              builder: (BuildContext context) {
+                return CupertinoSettings(items: <Widget>[
+                  CSHeader('Ihre Papierkram.de Zugangsdaten'),
+                  CSControl(
+                    "Firmen ID",
+                    Text(
+                      api.authCompany,
+                      style: const TextStyle(
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                  ),
+                  CSControl(
+                    "Nutzer",
+                    Text(
+                      api.authUsername,
+                      style: const TextStyle(
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                  ),
+                  CSControl(
+                    "API Schlüssel",
+                    Text(
+                      api.authToken,
+                      style: const TextStyle(
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                  ),
+                  CSButton(CSButtonType.DESTRUCTIVE, "Abmelden", () {
+                    state = null;
+                    api.deleteCredsFromLocalStore();
+                    Navigator.of(context, rootNavigator: true).pop("Logout");
+                  }),
+                ]);
+              },
+            );
+          default:
+            return const Text("Something went wrong");
+        }
+      },
     );
   }
 
@@ -724,134 +767,174 @@ class _TimeTrackerAppState extends State<TimeTrackerApp> {
 }
 
 class CredentialsPage extends StatefulWidget {
-  final TextEditingController _company;
-  final TextEditingController _user;
-  final TextEditingController _password;
-  final Function() _refresh;
-
-  CredentialsPage(this._company, this._user, this._password, this._refresh, {Key key}) : super(key: key) {
-    api.loadCredentials().then((bool success) {
-      if (success) {
-        _company.text = api.authCompany;
-        _user.text = api.authUsername;
-      }
-    });
-  }
-
   @override
   _CredentialsPageState createState() => _CredentialsPageState();
 }
 
 class _CredentialsPageState extends State<CredentialsPage> {
+  TextEditingController _company = TextEditingController();
+  TextEditingController _user = TextEditingController();
+  TextEditingController _password = TextEditingController();
+
   bool showPassword = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: ListView(
-        physics: const ClampingScrollPhysics(),
-        children: <Widget>[
-          const Center(
-            child: const Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: const Text(
-                "Ihre Papierkram.de Zugangsdaten",
-                textScaleFactor: 2,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: CupertinoTextField(
-              controller: widget._company,
-              placeholder: "Firmen ID",
-              autocorrect: false,
-              maxLines: 1,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: CupertinoTextField(
-              controller: widget._user,
-              placeholder: "Nutzer",
-              autocorrect: false,
-              maxLines: 1,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: CupertinoTextField(
-              controller: widget._password,
-              placeholder: "Passwort",
-              autocorrect: false,
-              maxLines: 1,
-              obscureText: !showPassword,
-              onChanged: (value) {
-                setState(() {
-                  if (value.isEmpty) showPassword = false;
-                });
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: AnimatedCrossFade(
-              crossFadeState: widget._password.text.isNotEmpty ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-              duration: const Duration(milliseconds: 500),
-              firstChild: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  CupertinoSwitch(
-                    onChanged: (bool value) {
-                      setState(() {
-                        showPassword = value;
-                      });
-                    },
-                    value: showPassword,
-                    activeColor: green,
+  void initState() {
+    super.initState();
+    api.loadCredentials().then((bool success) async {
+      if (success) {
+        _company.text = api.authCompany;
+        _user.text = api.authUsername;
+        try {
+          await api.authenticate();
+          api.loadTrackerState().then((TrackerState state) {
+            Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
+            );
+          });
+        } catch (e) {
+          showCupertinoDialog(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+              title: const Text("Ein Fehler ist beim Login aufgetreten"),
+              content: Text(e.message),
+              actions: [
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: const Text(
+                    "Schließen",
+                    style: const TextStyle(color: CupertinoColors.destructiveRed),
                   ),
-                  const Text("Passwort anzeigen")
-                ],
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop("Cancel");
+                  },
+                )
+              ],
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ListView(
+          physics: const ClampingScrollPhysics(),
+          children: <Widget>[
+            const Center(
+              child: const Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: const Text(
+                  "Ihre Papierkram.de Zugangsdaten",
+                  textScaleFactor: 2,
+                ),
               ),
-              secondChild: const SizedBox.shrink(),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: CupertinoButton.filled(
-              child: const Text("Speichern"),
-              onPressed: () async {
-                if (widget._password.text.isNotEmpty) {
-                  try {
-                    await api.saveSettingsCheckToken(widget._company.text, widget._user.text, widget._password.text);
-                    this.widget._refresh();
-                  } catch (e) {
-                    showCupertinoDialog(
-                      context: context,
-                      builder: (BuildContext context) => CupertinoAlertDialog(
-                        title: const Text("Ein Fehler ist beim Login aufgetreten"),
-                        content: Text(e.message),
-                        actions: [
-                          CupertinoDialogAction(
-                            isDefaultAction: true,
-                            child: const Text(
-                              "Schließen",
-                              style: const TextStyle(color: CupertinoColors.destructiveRed),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop("Cancel");
-                            },
-                          )
-                        ],
-                      ),
-                    );
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: CupertinoTextField(
+                controller: _company,
+                placeholder: "Firmen ID",
+                autocorrect: false,
+                maxLines: 1,
+                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: CupertinoTextField(
+                controller: _user,
+                placeholder: "Nutzer",
+                autocorrect: false,
+                maxLines: 1,
+                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: CupertinoTextField(
+                controller: _password,
+                placeholder: "Passwort",
+                autocorrect: false,
+                maxLines: 1,
+                obscureText: !showPassword,
+                onChanged: (value) {
+                  setState(() {
+                    if (value.isEmpty) showPassword = false;
+                  });
+                },
+                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: AnimatedCrossFade(
+                crossFadeState: _password.text.isNotEmpty ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                duration: const Duration(milliseconds: 500),
+                firstChild: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    CupertinoSwitch(
+                      onChanged: (bool value) {
+                        setState(() {
+                          showPassword = value;
+                        });
+                      },
+                      value: showPassword,
+                      activeColor: green,
+                    ),
+                    const Text("Passwort anzeigen")
+                  ],
+                ),
+                secondChild: const SizedBox.shrink(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: CupertinoButton.filled(
+                child: const Text("Speichern"),
+                onPressed: () async {
+                  if (_password.text.isNotEmpty) {
+                    try {
+                      await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
+                      api.loadTrackerState().then((TrackerState state) {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
+                        );
+                      });
+                    } catch (e) {
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (BuildContext context) => CupertinoAlertDialog(
+                          title: const Text("Ein Fehler ist beim Login aufgetreten"),
+                          content: Text(e.message),
+                          actions: [
+                            CupertinoDialogAction(
+                              isDefaultAction: true,
+                              child: const Text(
+                                "Schließen",
+                                style: const TextStyle(color: CupertinoColors.destructiveRed),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context, rootNavigator: true).pop("Cancel");
+                              },
+                            )
+                          ],
+                        ),
+                      );
+                    }
                   }
-                }
-              },
+                },
+              ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }

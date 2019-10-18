@@ -245,3 +245,8 @@ Future<Map<String, String>> readCredsFromLocalStore() async {
 
   return {'username': username, 'token': password, 'company': company};
 }
+
+void deleteCredsFromLocalStore() {
+  final FlutterSecureStorage storage = new FlutterSecureStorage();
+  storage.deleteAll();
+}
