@@ -177,9 +177,11 @@ packages:
   flutter_cupertino_settings:
     dependency: "direct main"
     description:
-      name: flutter_cupertino_settings
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "03d3c0b631afb9a6270a03e13304935ef23fc538"
+      url: "git://github.com/matthinc/flutter_cupertino_settings.git"
+    source: git
     version: "0.1.0"
   flutter_easyrefresh:
     dependency: "direct main"
@@ -526,7 +528,7 @@ packages:
       name: url_launcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.2.2"
+    version: "5.2.3"
   uuid:
     dependency: "direct main"
     description:
