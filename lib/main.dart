@@ -550,7 +550,15 @@ class _TimeTrackerState extends State<TimeTracker> {
                       vertical: 16.0,
                     ),
                     physics: const ClampingScrollPhysics(),
-                    child: getRecentEntryTable(),
+                    child: FutureBuilder(
+                      future: getRecentEntryTable(),
+                      builder: (BuildContext context, AsyncSnapshot<Table> t) {
+                        if (t.hasData)
+                          return t.data;
+                        else
+                          return Center(child: CupertinoActivityIndicator());
+                      },
+                    ),
                   ),
                 );
               },
@@ -699,7 +707,7 @@ class _TimeTrackerState extends State<TimeTracker> {
     );
   }
 
-  Table getRecentEntryTable() {
+  Future<Table> getRecentEntryTable() async {
     bool isLarge = MediaQuery.of(context).size.width > 479;
     bool isLarger = MediaQuery.of(context).size.width > 767;
     bool isLargest = MediaQuery.of(context).size.width > 991;
@@ -736,12 +744,20 @@ class _TimeTrackerState extends State<TimeTracker> {
             ),
           ),
           if (isLarge) TableCell(child: Container()),
+          if (isLarger) TableCell(child: Container()),
+          if (isLarger) TableCell(child: Container()),
         ],
       ),
     ];
 
-    void addRecentTaskRow(List<Entry> e) {
+    Future<void> addRecentTaskRow(List<Entry> e) async {
       for (Entry e in e) {
+        double salary = -1;
+        if (isLarger) {
+          Project project = await api.loadProject(e.project_id);
+          salary = project.calculatePrice(e.getTaskDuration());
+        }
+
         recentEntries.add(TableRow(
           children: <TableCell>[
             TableCell(
@@ -780,12 +796,26 @@ class _TimeTrackerState extends State<TimeTracker> {
                   child: Text(dayMonth.format(e.getTimeStamp())),
                 ),
               ),
+            if (isLarger)
+              TableCell(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("${hoursSeconds.format(e.started_at)} bis ${hoursSeconds.format(e.ended_at)}"),
+                ),
+              ),
+            if (isLarger)
+              TableCell(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(salary > -1 ? "${salary.toStringAsFixed(2)} €" : ""),
+                ),
+              ),
           ],
         ));
       }
     }
 
-    addRecentTaskRow(state.getTodaysEntries());
+    await addRecentTaskRow(state.getTodaysEntries());
 
     recentEntries.add(TableRow(
       decoration: const BoxDecoration(
@@ -808,16 +838,20 @@ class _TimeTrackerState extends State<TimeTracker> {
         ),
         TableCell(child: Container()),
         if (isLarge) TableCell(child: Container()),
+        if (isLarger) TableCell(child: Container()),
+        if (isLarger) TableCell(child: Container()),
       ],
     ));
 
-    addRecentTaskRow(state.getPreviousEntries());
+    await addRecentTaskRow(state.getPreviousEntries());
 
     return Table(
       columnWidths: {
         0: IntrinsicColumnWidth(),
         1: FixedColumnWidth(90),
         if (isLarge) 2: FixedColumnWidth(90),
+        if (isLarger) 3: FixedColumnWidth(180),
+        if (isLarger) 4: FixedColumnWidth(90),
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.bottom,
       children: recentEntries,
