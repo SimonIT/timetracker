@@ -34,16 +34,6 @@ class Project {
 
   String get title => "${_unescape.convert(customer.name)}: $name";
 
-  double calculateSalary(Duration duration) {
-    if (budget_type == "money") {
-      switch (budget_time_unit) {
-        case "hour":
-          // TODO return duration.inHours * budget_
-      }
-    }
-    return -1;
-  }
-
   factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProjectToJson(this);
