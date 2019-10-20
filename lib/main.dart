@@ -7,6 +7,7 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/material_header.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
 import 'package:timetracker/data.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,8 +19,31 @@ const Color red = Color.fromRGBO(218, 78, 73, 1);
 const Color deactivatedGray = Color.fromRGBO(209, 208, 203, 1);
 const BorderSide inputBorder = BorderSide(
   color: CupertinoColors.lightBackgroundGray,
-  style: BorderStyle.solid,
   width: 0.0,
+);
+const BoxDecoration rowDecorationBreak = BoxDecoration(
+  border: Border(
+    bottom: BorderSide(
+      color: CupertinoColors.lightBackgroundGray,
+      width: 0.5,
+    ),
+  ),
+);
+const BoxDecoration rowDecorationNewDay = BoxDecoration(
+  border: Border(
+    bottom: BorderSide(
+      color: CupertinoColors.lightBackgroundGray,
+      width: 2,
+    ),
+  ),
+);
+const BoxDecoration rowHeading = const BoxDecoration(
+  border: const Border(
+    bottom: const BorderSide(
+      width: 3,
+      color: CupertinoColors.lightBackgroundGray,
+    ),
+  ),
 );
 final DateFormat hoursSeconds = DateFormat("HH:mm");
 final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
@@ -69,8 +93,15 @@ class _TimeTrackerState extends State<TimeTracker> {
   FocusNode _taskFocus = FocusNode();
   FocusNode _commentFocus = FocusNode();
 
+  bool highlightBreaks = false;
+  SharedPreferences prefs;
+
   _TimeTrackerState({@required this.state}) {
     updateInputs();
+    SharedPreferences.getInstance().then((SharedPreferences prefs) {
+      this.prefs = prefs;
+      this.highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
+    });
   }
 
   Future<void> _refresh(BuildContext context) async {
@@ -556,7 +587,11 @@ class _TimeTrackerState extends State<TimeTracker> {
                         if (t.hasData)
                           return t.data;
                         else
-                          return Center(child: CupertinoActivityIndicator());
+                          return Center(
+                            child: CupertinoActivityIndicator(
+                              radius: 50,
+                            ),
+                          );
                       },
                     ),
                   ),
@@ -601,6 +636,16 @@ class _TimeTrackerState extends State<TimeTracker> {
                     Navigator.of(context, rootNavigator: true).pop("Logout");
                   }),
                   CSHeader("Einstellungen"),
+                  CSControl(
+                    "Pausen hervorheben",
+                    CupertinoSwitch(
+                      onChanged: (bool changed) => setState(() {
+                        highlightBreaks = changed;
+                        prefs.setBool("highlightBreaks", changed);
+                      }),
+                      value: highlightBreaks,
+                    ),
+                  ),
                   CSHeader("Weitere Infos"),
                   CSLink("Quelltext", () => launch("https://github.com/SimonIT/timetracker")),
                   CSLink("Kontakt", () => launch("mailto:simonit.orig@gmail.com")),
@@ -714,14 +759,7 @@ class _TimeTrackerState extends State<TimeTracker> {
 
     List<TableRow> recentEntries = [
       TableRow(
-        decoration: const BoxDecoration(
-          border: const Border(
-            bottom: const BorderSide(
-              width: 1,
-              color: CupertinoColors.lightBackgroundGray,
-            ),
-          ),
-        ),
+        decoration: rowHeading,
         children: <TableCell>[
           TableCell(
             child: Padding(
@@ -751,14 +789,24 @@ class _TimeTrackerState extends State<TimeTracker> {
     ];
 
     Future<void> addRecentTaskRow(List<Entry> e) async {
-      for (Entry e in e) {
+      for (int i = 0; i < e.length; i++) {
         double salary = -1;
         if (isLarger) {
-          Project project = await api.loadProject(e.project_id);
-          salary = project.calculatePrice(e.getTaskDuration());
+          Project project = await api.loadProject(e[i].project_id);
+          salary = project.calculateSalary(e[i].getTaskDuration());
+        }
+
+        BoxDecoration rowDecoration;
+
+        if (highlightBreaks && i + 1 < e.length) {
+          if (!onSameDay(e[i].ended_at, e[i + 1].started_at))
+            rowDecoration = rowDecorationNewDay;
+          else if (e[i].ended_at.difference(e[i + 1].started_at) > const Duration(minutes: 2))
+            rowDecoration = rowDecorationBreak;
         }
 
         recentEntries.add(TableRow(
+          decoration: rowDecoration,
           children: <TableCell>[
             TableCell(
               child: Padding(
@@ -767,13 +815,13 @@ class _TimeTrackerState extends State<TimeTracker> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      e.title,
+                      e[i].title,
                       textScaleFactor: 0.75,
                       style: const TextStyle(
                         color: CupertinoColors.lightBackgroundGray,
                       ),
                     ),
-                    Text(e.task_name),
+                    Text(e[i].task_name),
                   ],
                 ),
               ),
@@ -783,7 +831,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   prettyDuration(
-                    e.getTaskDuration(),
+                    e[i].getTaskDuration(),
                     abbreviated: true,
                   ),
                 ),
@@ -793,14 +841,14 @@ class _TimeTrackerState extends State<TimeTracker> {
               TableCell(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(dayMonth.format(e.getTimeStamp())),
+                  child: Text(dayMonth.format(e[i].getTimeStamp())),
                 ),
               ),
             if (isLarger)
               TableCell(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("${hoursSeconds.format(e.started_at)} bis ${hoursSeconds.format(e.ended_at)}"),
+                  child: Text("${hoursSeconds.format(e[i].started_at)} bis ${hoursSeconds.format(e[i].ended_at)}"),
                 ),
               ),
             if (isLarger)
@@ -818,14 +866,7 @@ class _TimeTrackerState extends State<TimeTracker> {
     await addRecentTaskRow(state.getTodaysEntries());
 
     recentEntries.add(TableRow(
-      decoration: const BoxDecoration(
-        border: const Border(
-          bottom: const BorderSide(
-            width: 1,
-            color: CupertinoColors.lightBackgroundGray,
-          ),
-        ),
-      ),
+      decoration: rowHeading,
       children: <TableCell>[
         TableCell(
           child: Padding(

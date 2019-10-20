@@ -34,7 +34,7 @@ class Project {
 
   String get title => "${_unescape.convert(customer.name)}: $name";
 
-  double calculatePrice(Duration duration) {
+  double calculateSalary(Duration duration) {
     if (budget_type == "money") {
       switch (budget_time_unit) {
         case "hour":
