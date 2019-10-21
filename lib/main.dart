@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cupertino_settings/flutter_cupertino_settings.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/material_header.dart';
@@ -637,6 +638,12 @@ class _TimeTrackerState extends State<TimeTracker> {
                   CSHeader("Weitere Infos"),
                   CSLink("Quelltext", () => launch("https://github.com/SimonIT/timetracker")),
                   CSLink("Kontakt", () => launch("mailto:simonit.orig@gmail.com")),
+                  CSLink(
+                    "Lizenzen",
+                    () => Navigator.of(context, rootNavigator: true).push(
+                      CupertinoPageRoute(builder: (BuildContext context) => LicensePage()),
+                    ),
+                  ),
                 ]);
               },
             );
@@ -1041,6 +1048,63 @@ class _CredentialsPageState extends State<CredentialsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class LicensePage extends StatelessWidget {
+  final Future<List<LicenseEntry>> _licenses = LicenseRegistry.licenses.toList();
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text("Lizenzen"),
+      ),
+      child: FutureBuilder(
+        future: _licenses,
+        builder: (BuildContext context, AsyncSnapshot<List<LicenseEntry>> s) {
+          if (s.hasData) {
+            return ListView.builder(
+              itemCount: s.data.length,
+              padding: const EdgeInsets.all(10),
+              itemBuilder: (context, index) {
+                try {
+                  List<LicenseParagraph> paragraphs = s.data[index].paragraphs.toList();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      children: <Widget>[
+                        Center(
+                          child: Text(
+                            s.data[index].packages.join(", "),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Column(
+                          children: paragraphs
+                              .map((p) => Padding(
+                                    padding: EdgeInsets.only(left: 15.0 * (p.indent > 0 ? p.indent : 0)),
+                                    child: Text(
+                                      p.text,
+                                      textAlign: p.indent == LicenseParagraph.centeredIndent ? TextAlign.center : null,
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      ],
+                    ),
+                  );
+                } catch (e) {
+                  return Container();
+                }
+              },
+            );
+          } else {
+            return Center(child: CupertinoActivityIndicator());
+          }
+        },
       ),
     );
   }
