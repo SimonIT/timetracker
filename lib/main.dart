@@ -894,7 +894,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
         try {
           await api.authenticate();
           api.loadTrackerState().then((TrackerState state) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
             );
@@ -1009,7 +1009,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
                     try {
                       await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
                       api.loadTrackerState().then((TrackerState state) {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
                         );
