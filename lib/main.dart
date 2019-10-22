@@ -577,12 +577,14 @@ class _TimeTrackerState extends State<TimeTracker> {
                   header: MaterialHeader(),
                   onRefresh: () => _refresh(context),
                   bottomBouncing: false,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
+                  child: CupertinoScrollbar(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16.0,
+                      ),
+                      physics: const ClampingScrollPhysics(),
+                      child: getRecentEntryTable(),
                     ),
-                    physics: const ClampingScrollPhysics(),
-                    child: getRecentEntryTable(),
                   ),
                 );
               },
@@ -1066,40 +1068,43 @@ class LicensePage extends StatelessWidget {
         future: _licenses,
         builder: (BuildContext context, AsyncSnapshot<List<LicenseEntry>> s) {
           if (s.hasData) {
-            return ListView.builder(
-              itemCount: s.data.length,
-              padding: const EdgeInsets.all(10),
-              itemBuilder: (context, index) {
-                try {
-                  List<LicenseParagraph> paragraphs = s.data[index].paragraphs.toList();
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Column(
-                      children: <Widget>[
-                        Center(
-                          child: Text(
-                            s.data[index].packages.join(", "),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+            return CupertinoScrollbar(
+              child: ListView.builder(
+                itemCount: s.data.length,
+                padding: const EdgeInsets.all(10),
+                itemBuilder: (context, index) {
+                  try {
+                    List<LicenseParagraph> paragraphs = s.data[index].paragraphs.toList();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Column(
+                        children: <Widget>[
+                          Center(
+                            child: Text(
+                              s.data[index].packages.join(", "),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        ),
-                        Column(
-                          children: paragraphs
-                              .map((p) => Padding(
-                                    padding: EdgeInsets.only(left: 15.0 * (p.indent > 0 ? p.indent : 0)),
-                                    child: Text(
-                                      p.text,
-                                      textAlign: p.indent == LicenseParagraph.centeredIndent ? TextAlign.center : null,
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ],
-                    ),
-                  );
-                } catch (e) {
-                  return Container();
-                }
-              },
+                          Column(
+                            children: paragraphs
+                                .map((p) => Padding(
+                                      padding: EdgeInsets.only(left: 15.0 * (p.indent > 0 ? p.indent : 0)),
+                                      child: Text(
+                                        p.text,
+                                        textAlign:
+                                            p.indent == LicenseParagraph.centeredIndent ? TextAlign.center : null,
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                      ),
+                    );
+                  } catch (e) {
+                    return Container();
+                  }
+                },
+              ),
             );
           } else {
             return Center(child: CupertinoActivityIndicator());
