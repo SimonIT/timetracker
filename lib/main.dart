@@ -58,16 +58,17 @@ class App extends StatelessWidget {
     return CupertinoApp(
       title: 'Papierkram.de TimeTracker',
       theme: const CupertinoThemeData(
-          primaryColor: const Color.fromRGBO(185, 213, 222, 1),
-          primaryContrastingColor: const Color.fromRGBO(0, 59, 78, 1),
-          barBackgroundColor: const Color.fromRGBO(0, 59, 78, 1),
-          textTheme: const CupertinoTextThemeData(
-            textStyle: const TextStyle(
-              color: CupertinoColors.white,
-              fontSize: 17,
-            ),
+        primaryColor: const Color.fromRGBO(185, 213, 222, 1),
+        primaryContrastingColor: const Color.fromRGBO(0, 59, 78, 1),
+        barBackgroundColor: const Color.fromRGBO(0, 59, 78, 1),
+        textTheme: const CupertinoTextThemeData(
+          textStyle: const TextStyle(
+            color: CupertinoColors.white,
+            fontSize: 17,
           ),
-          scaffoldBackgroundColor: const Color.fromRGBO(0, 102, 136, 1)),
+        ),
+        scaffoldBackgroundColor: const Color.fromRGBO(0, 102, 136, 1),
+      ),
       home: CredentialsPage(),
     );
   }
@@ -789,9 +790,9 @@ class _TimeTrackerState extends State<TimeTracker> {
         BoxDecoration rowDecoration;
 
         if (highlightBreaks && i + 1 < e.length) {
-          if (!onSameDay(e[i].ended_at, e[i + 1].started_at))
+          if (!onSameDay(e[i].getTimeStamp(), e[i + 1].started_at))
             rowDecoration = rowDecorationNewDay;
-          else if (e[i].ended_at.difference(e[i + 1].started_at) > const Duration(minutes: 2))
+          else if (e[i].getTimeStamp().difference(e[i + 1].started_at) > const Duration(minutes: 2))
             rowDecoration = rowDecorationBreak;
         }
 
@@ -838,7 +839,8 @@ class _TimeTrackerState extends State<TimeTracker> {
               TableCell(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("${hoursSeconds.format(e[i].started_at)} bis ${hoursSeconds.format(e[i].ended_at)}"),
+                  child:
+                      Text("${hoursSeconds.format(e[i].started_at)} bis ${hoursSeconds.format(e[i].getTimeStamp())}"),
                 ),
               ),
           ],

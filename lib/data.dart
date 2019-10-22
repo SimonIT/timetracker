@@ -260,14 +260,14 @@ class Entry {
   String project_name;
   int customer_id;
   String customer_name;
-  DateTime ended_at;
+  DateTime ended_at; // Do Not Use, wrong timezone
   int timestamp;
   int duration;
   int task_duration;
 
   Entry();
 
-  DateTime get started_at => ended_at.subtract(getTaskDuration());
+  DateTime get started_at => getTimeStamp().subtract(getTaskDuration());
 
   String get title => "${_unescape.convert(customer_name)}: $project_name";
 
