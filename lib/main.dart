@@ -792,7 +792,7 @@ class _TimeTrackerState extends State<TimeTracker> {
         if (highlightBreaks && i + 1 < e.length) {
           if (!onSameDay(e[i].getTimeStamp(), e[i + 1].started_at))
             rowDecoration = rowDecorationNewDay;
-          else if (e[i].getTimeStamp().difference(e[i + 1].started_at) > const Duration(minutes: 2))
+          else if (e[i].started_at.difference(e[i + 1].getTimeStamp()) > const Duration(minutes: 2))
             rowDecoration = rowDecorationBreak;
         }
 
