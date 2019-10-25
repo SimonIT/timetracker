@@ -116,27 +116,30 @@ class _TimeTrackerState extends State<TimeTracker> {
         });
       });
     } catch (e) {
-      state = null;
-      Navigator.of(context, rootNavigator: true).pop("Logout");
-      showCupertinoDialog(
-        context: context,
-        builder: (BuildContext context) => CupertinoAlertDialog(
-          title: const Text("Ein Fehler ist beim Authentifizieren aufgetreten"),
-          content: Text(e.message),
-          actions: [
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              child: const Text(
-                "Schließen",
-                style: const TextStyle(color: CupertinoColors.destructiveRed),
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop("Cancel");
-              },
-            )
-          ],
-        ),
-      );
+      Navigator.of(context, rootNavigator: true)
+          .pushReplacement(CupertinoPageRoute(builder: (BuildContext context) => CredentialsPage()))
+          .whenComplete(() {
+        state = null;
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) => CupertinoAlertDialog(
+            title: const Text("Ein Fehler ist beim Authentifizieren aufgetreten"),
+            content: Text(e.message),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                child: const Text(
+                  "Schließen",
+                  style: const TextStyle(color: CupertinoColors.destructiveRed),
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop("Cancel");
+                },
+              )
+            ],
+          ),
+        );
+      });
     }
   }
 
@@ -623,9 +626,12 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                   ),
                   CSButton(CSButtonType.DESTRUCTIVE, "Abmelden", () {
-                    state = null;
-                    api.deleteCredsFromLocalStore();
-                    Navigator.of(context, rootNavigator: true).pop("Logout");
+                    Navigator.of(context, rootNavigator: true)
+                        .pushReplacement(CupertinoPageRoute(builder: (BuildContext context) => CredentialsPage()))
+                        .whenComplete(() {
+                      state = null;
+                      api.deleteCredsFromLocalStore();
+                    });
                   }),
                   CSHeader("Einstellungen"),
                   CSControl(
