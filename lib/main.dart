@@ -112,7 +112,7 @@ class _TimeTrackerState extends State<TimeTracker> {
       api.loadTrackerState().then((TrackerState state) {
         setState(() {
           this.state = state;
-          if (state != null) updateInputs();
+          updateInputs();
         });
       });
     } catch (e) {
@@ -155,7 +155,7 @@ class _TimeTrackerState extends State<TimeTracker> {
       controller: _tabController,
       tabBar: CupertinoTabBar(
         items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: const Icon(
               const IconData(
                 0xF2FD,
@@ -166,15 +166,15 @@ class _TimeTrackerState extends State<TimeTracker> {
             ),
             title: const Text('Tracken'),
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.pen),
             title: const Text('Zeiterfassung'),
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.clock),
             title: const Text('Buchungen'),
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.settings),
             title: const Text('Zugangsdaten'),
           ),
@@ -242,8 +242,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                           placeholder: "Kunde/Projekt",
                           autocorrect: false,
                           maxLines: 1,
-                          style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                         ),
+                        hideOnEmpty: true,
+                        keepSuggestionsOnLoading: true,
+                        suggestionsBoxVerticalOffset: 0,
                         itemBuilder: (BuildContext context, Project itemData) {
                           return Padding(
                             padding: const EdgeInsets.all(4.0),
@@ -290,7 +292,6 @@ class _TimeTrackerState extends State<TimeTracker> {
                           state.task_name = text;
                           api.setTrackerState(state);
                         },
-                        style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                       ),
                     ),
                     Padding(
@@ -306,7 +307,6 @@ class _TimeTrackerState extends State<TimeTracker> {
                           state.comment = text;
                           api.setTrackerState(state);
                         },
-                        style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                       ),
                     ),
                     Padding(
@@ -965,7 +965,6 @@ class _CredentialsPageState extends State<CredentialsPage> {
                 placeholder: "Firmen ID",
                 autocorrect: false,
                 maxLines: 1,
-                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
               ),
             ),
             Padding(
@@ -975,7 +974,6 @@ class _CredentialsPageState extends State<CredentialsPage> {
                 placeholder: "Nutzer",
                 autocorrect: false,
                 maxLines: 1,
-                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
               ),
             ),
             Padding(
@@ -991,7 +989,6 @@ class _CredentialsPageState extends State<CredentialsPage> {
                     if (value.isEmpty) showPassword = false;
                   });
                 },
-                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
               ),
             ),
             Padding(
@@ -1069,8 +1066,13 @@ class LicensePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text("Lizenzen"),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          "Lizenzen",
+          style: TextStyle(
+            color: CupertinoTheme.of(context).textTheme.textStyle.color,
+          ),
+        ),
       ),
       child: FutureBuilder(
         future: _licenses,
@@ -1115,7 +1117,7 @@ class LicensePage extends StatelessWidget {
               ),
             );
           } else {
-            return Center(child: CupertinoActivityIndicator());
+            return const Center(child: CupertinoActivityIndicator());
           }
         },
       ),
