@@ -900,6 +900,47 @@ class _CredentialsPageState extends State<CredentialsPage> {
   TextEditingController _password = TextEditingController();
 
   bool showPassword = false;
+  bool showLoading = false;
+
+  Future<void> authenticateAndLoadState() async {
+    setState(() => showLoading = true);
+    try {
+      await api.authenticate();
+      api.loadTrackerState().then((TrackerState state) {
+        setState(() => showLoading = false);
+        Navigator.pushReplacement(
+          context,
+          CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
+        );
+      });
+    } catch (e) {
+      setState(() => showLoading = false);
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text("Ein Fehler ist beim Login aufgetreten"),
+          content: Text(e.message),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text("Erneut Versuchen"),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop("Cancel");
+                authenticateAndLoadState();
+              },
+            ),
+            CupertinoDialogAction(
+              child: const Text(
+                "Schließen",
+                style: const TextStyle(color: CupertinoColors.destructiveRed),
+              ),
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -908,35 +949,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
       if (success) {
         _company.text = api.authCompany;
         _user.text = api.authUsername;
-        try {
-          await api.authenticate();
-          api.loadTrackerState().then((TrackerState state) {
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
-            );
-          });
-        } catch (e) {
-          showCupertinoDialog(
-            context: context,
-            builder: (BuildContext context) => CupertinoAlertDialog(
-              title: const Text("Ein Fehler ist beim Login aufgetreten"),
-              content: Text(e.message),
-              actions: [
-                CupertinoDialogAction(
-                  isDefaultAction: true,
-                  child: const Text(
-                    "Schließen",
-                    style: const TextStyle(color: CupertinoColors.destructiveRed),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop("Cancel");
-                  },
-                )
-              ],
-            ),
-          );
-        }
+        authenticateAndLoadState();
       }
     });
   }
@@ -1020,15 +1033,18 @@ class _CredentialsPageState extends State<CredentialsPage> {
                 child: const Text("Speichern"),
                 onPressed: () async {
                   if (_password.text.isNotEmpty) {
+                    setState(() => showLoading = true);
                     try {
                       await api.saveSettingsCheckToken(_company.text, _user.text, _password.text);
                       api.loadTrackerState().then((TrackerState state) {
+                        setState(() => showLoading = false);
                         Navigator.pushReplacement(
                           context,
                           CupertinoPageRoute(builder: (BuildContext context) => TimeTracker(state: state)),
                         );
                       });
                     } catch (e) {
+                      setState(() => showLoading = false);
                       showCupertinoDialog(
                         context: context,
                         builder: (BuildContext context) => CupertinoAlertDialog(
@@ -1041,10 +1057,8 @@ class _CredentialsPageState extends State<CredentialsPage> {
                                 "Schließen",
                                 style: const TextStyle(color: CupertinoColors.destructiveRed),
                               ),
-                              onPressed: () {
-                                Navigator.of(context, rootNavigator: true).pop("Cancel");
-                              },
-                            )
+                              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
+                            ),
                           ],
                         ),
                       );
@@ -1053,6 +1067,15 @@ class _CredentialsPageState extends State<CredentialsPage> {
                 },
               ),
             ),
+            if (showLoading)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Center(
+                  child: CupertinoActivityIndicator(
+                    radius: 50,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
