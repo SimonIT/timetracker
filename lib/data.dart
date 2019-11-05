@@ -1,10 +1,12 @@
 import 'package:html_unescape/html_unescape_small.dart';
+import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:timetracker/helpers.dart';
 
 part 'data.g.dart';
 
-HtmlUnescape _unescape = HtmlUnescape();
+final HtmlUnescape _unescape = HtmlUnescape();
+final DateFormat _entryDateFormat = DateFormat("yyyy-MM-dd");
 
 @JsonSerializable()
 class Project {
@@ -139,6 +141,7 @@ class TrackerState {
 
   void setStartedAt(DateTime startedAt) {
     this.started_at = startedAt.millisecondsSinceEpoch.toString();
+    this.entry_date = _entryDateFormat.format(startedAt);
   }
 
   DateTime getStartedAt() {
