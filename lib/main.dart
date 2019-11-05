@@ -97,6 +97,7 @@ class _TimeTrackerState extends State<TimeTracker> {
   FocusNode _taskFocus = FocusNode();
   FocusNode _commentFocus = FocusNode();
 
+  Timer _t;
   bool highlightBreaks = false;
   SharedPreferences prefs;
   List<ProductDetails> products;
@@ -116,8 +117,15 @@ class _TimeTrackerState extends State<TimeTracker> {
       if (available)
         InAppPurchaseConnection.instance
             .queryProductDetails({'developer_limonade_once', 'developer_buns_weekly', 'developer_cinema_monthly'}).then(
-                (ProductDetailsResponse response) => setState(() => products = response.productDetails));
+                (ProductDetailsResponse response) => setState(() => this.products = response.productDetails));
     });
+    this._t = Timer.periodic(const Duration(minutes: 5), (Timer timer) => _refresh(context));
+  }
+
+  @override
+  void dispose() {
+    this._t.cancel();
+    super.dispose();
   }
 
   Future<void> _refresh(BuildContext context) async {
