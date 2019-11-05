@@ -263,11 +263,11 @@ class Entry {
   DateTime ended_at; // Do Not Use, wrong timezone
   int timestamp;
   int duration;
-  int task_duration;
+  int task_duration; // I think this is for all
 
   Entry();
 
-  DateTime get started_at => getTimeStamp().subtract(getTaskDuration());
+  DateTime get started_at => getTimeStamp().subtract(getDuration());
 
   String get title => "${_unescape.convert(customer_name)}: $project_name";
 
@@ -275,8 +275,8 @@ class Entry {
     return DateTime.fromMillisecondsSinceEpoch(this.timestamp * 1000);
   }
 
-  Duration getTaskDuration() {
-    return Duration(seconds: task_duration);
+  Duration getDuration() {
+    return Duration(seconds: duration);
   }
 
   factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);

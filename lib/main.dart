@@ -828,7 +828,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   prettyDuration(
-                    e[i].getTaskDuration(),
+                    e[i].getDuration(),
                     abbreviated: true,
                   ),
                 ),
