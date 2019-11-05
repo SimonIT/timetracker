@@ -7,6 +7,7 @@ import 'package:flutter_cupertino_settings/flutter_cupertino_settings.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_easyrefresh/material_header.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
@@ -49,6 +50,7 @@ const BoxDecoration rowHeading = const BoxDecoration(
 final DateFormat hoursSeconds = DateFormat("HH:mm");
 final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 final DateFormat dayMonth = DateFormat("dd.MM.");
+final RegExp iapAppNameFilter = RegExp("(?> \(.+?\))\$", caseSensitive: false);
 
 void main() => runApp(App());
 
@@ -97,12 +99,24 @@ class _TimeTrackerState extends State<TimeTracker> {
 
   bool highlightBreaks = false;
   SharedPreferences prefs;
+  List<ProductDetails> products;
 
   _TimeTrackerState({@required this.state}) {
     updateInputs();
     SharedPreferences.getInstance().then((SharedPreferences prefs) {
       this.prefs = prefs;
       this.highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    InAppPurchaseConnection.instance.isAvailable().then((bool available) {
+      if (available)
+        InAppPurchaseConnection.instance
+            .queryProductDetails({'developer_limonade_once', 'developer_buns_weekly', 'developer_cinema_monthly'}).then(
+                (ProductDetailsResponse response) => setState(() => products = response.productDetails));
     });
   }
 
@@ -132,9 +146,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                   "Schließen",
                   style: const TextStyle(color: CupertinoColors.destructiveRed),
                 ),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop("Cancel");
-                },
+                onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
               )
             ],
           ),
@@ -596,7 +608,7 @@ class _TimeTrackerState extends State<TimeTracker> {
           case 3:
             return CupertinoTabView(
               builder: (BuildContext context) {
-                return CupertinoSettings(items: <Widget>[
+                List<Widget> cs = [
                   CSHeader('Ihre Papierkram.de Zugangsdaten'),
                   CSControl(
                     "Firmen ID",
@@ -644,6 +656,33 @@ class _TimeTrackerState extends State<TimeTracker> {
                       value: highlightBreaks,
                     ),
                   ),
+                ];
+
+                if (products != null && products.isNotEmpty) {
+                  cs.add(CSHeader("Kaufe mir ein ..."));
+                  for (ProductDetails product in products) {
+                    cs.add(CSControl(
+                      product.title.replaceAll(iapAppNameFilter, ""),
+                      CupertinoButton(
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(product.price),
+                            ),
+                            Icon(CupertinoIcons.shopping_cart),
+                          ],
+                        ),
+                        onPressed: () {
+                          InAppPurchaseConnection.instance
+                              .buyConsumable(purchaseParam: PurchaseParam(productDetails: product), autoConsume: true);
+                        },
+                      ),
+                    ));
+                  }
+                }
+
+                cs.addAll([
                   CSHeader("Weitere Infos"),
                   CSLink("Quelltext", () => launch("https://github.com/SimonIT/timetracker")),
                   CSLink("Kontakt", () => launch("mailto:simonit.orig@gmail.com")),
@@ -654,6 +693,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                   ),
                 ]);
+
+                return CupertinoSettings(items: cs);
               },
             );
           default:
