@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_review/app_review.dart';
 import 'package:duration/duration.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -107,6 +108,44 @@ class _TimeTrackerState extends State<TimeTracker> {
     SharedPreferences.getInstance().then((SharedPreferences prefs) {
       this.prefs = prefs;
       this.highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
+      int appLaunches = prefs.getInt("appLaunches") ?? 0;
+      if (appLaunches > 4) {
+        Future.delayed(
+            const Duration(seconds: 10),
+            () => showCupertinoDialog(
+                  context: context,
+                  builder: (BuildContext context) => CupertinoAlertDialog(
+                    title: const Text("Dir gefällt der TimeTracker?"),
+                    content: const Text("Dann zeig es mir!"),
+                    actions: [
+                      CupertinoDialogAction(
+                        isDefaultAction: true,
+                        child: const Text("Ich lasse ein Bewertung da ⭐"),
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop("Rate");
+                          AppReview.writeReview;
+                        },
+                      ),
+                      CupertinoDialogAction(
+                        child: const Text("Ich kaufe dir etwas 🛒"),
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop("Buy");
+                          _tabController.index = 3;
+                        },
+                      ),
+                      CupertinoDialogAction(
+                        child: const Text("Alles erledigt 🎉"),
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop("Cancel");
+                          prefs.setInt("appLaunches", -1);
+                        },
+                      ),
+                    ],
+                  ),
+                ));
+      } else if (appLaunches > -1) {
+        prefs.setInt("appLaunches", ++appLaunches);
+      }
     });
   }
 
@@ -692,6 +731,7 @@ class _TimeTrackerState extends State<TimeTracker> {
 
                 cs.addAll([
                   CSHeader("Weitere Infos"),
+                  CSLink("Im Store Anzeigen", () => AppReview.storeListing),
                   CSLink("Quelltext", () => launch("https://github.com/SimonIT/timetracker")),
                   CSLink("Kontakt", () => launch("mailto:simonit.orig@gmail.com")),
                   CSLink(

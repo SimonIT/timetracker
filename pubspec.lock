@@ -15,6 +15,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.1"
+  app_review:
+    dependency: "direct main"
+    description:
+      name: app_review
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   archive:
     dependency: transitive
     description:
@@ -396,6 +403,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  package_info:
+    dependency: transitive
+    description:
+      name: package_info
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0+10"
   package_resolver:
     dependency: transitive
     description:
