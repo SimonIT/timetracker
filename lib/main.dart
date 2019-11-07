@@ -51,7 +51,7 @@ const BoxDecoration rowHeading = const BoxDecoration(
 final DateFormat hoursSeconds = DateFormat("HH:mm");
 final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 final DateFormat dayMonth = DateFormat("dd.MM.");
-final RegExp iapAppNameFilter = RegExp("(?> \(.+?\))\$", caseSensitive: false);
+final RegExp iapAppNameFilter = RegExp(r'( \(.+?\))$', caseSensitive: false);
 
 void main() => runApp(App());
 
