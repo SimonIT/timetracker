@@ -198,9 +198,11 @@ packages:
   flutter_cupertino_settings:
     dependency: "direct main"
     description:
-      name: flutter_cupertino_settings
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: secret
+      resolved-ref: f3ad342c6cac3a91fea3bf6c8ef5a5fa707e5d7c
+      url: "https://github.com/SimonIT/flutter_cupertino_settings.git"
+    source: git
     version: "0.2.0"
   flutter_easyrefresh:
     dependency: "direct main"

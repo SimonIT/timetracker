@@ -111,38 +111,39 @@ class _TimeTrackerState extends State<TimeTracker> {
       int appLaunches = prefs.getInt("appLaunches") ?? 0;
       if (appLaunches > 4) {
         Future.delayed(
-            const Duration(seconds: 10),
-            () => showCupertinoDialog(
-                  context: context,
-                  builder: (BuildContext context) => CupertinoAlertDialog(
-                    title: const Text("Dir gefällt der TimeTracker?"),
-                    content: const Text("Dann zeig es mir!"),
-                    actions: [
-                      CupertinoDialogAction(
-                        isDefaultAction: true,
-                        child: const Text("Ich lasse ein Bewertung da ⭐"),
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).pop("Rate");
-                          AppReview.writeReview;
-                        },
-                      ),
-                      CupertinoDialogAction(
-                        child: const Text("Ich kaufe dir etwas 🛒"),
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).pop("Buy");
-                          _tabController.index = 3;
-                        },
-                      ),
-                      CupertinoDialogAction(
-                        child: const Text("Alles erledigt 🎉"),
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).pop("Cancel");
-                          prefs.setInt("appLaunches", -1);
-                        },
-                      ),
-                    ],
-                  ),
-                ));
+          const Duration(seconds: 10),
+          () => showCupertinoDialog(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+              title: const Text("Dir gefällt der TimeTracker?"),
+              content: const Text("Dann zeig es mir!"),
+              actions: [
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  child: const Text("Ich lasse ein Bewertung da ⭐"),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop("Rate");
+                    AppReview.writeReview;
+                  },
+                ),
+                CupertinoDialogAction(
+                  child: const Text("Ich kaufe dir etwas 🛒"),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop("Buy");
+                    _tabController.index = 3;
+                  },
+                ),
+                CupertinoDialogAction(
+                  child: const Text("Alles erledigt 🎉"),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop("Cancel");
+                    prefs.setInt("appLaunches", -1);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
       } else if (appLaunches > -1) {
         prefs.setInt("appLaunches", ++appLaunches);
       }
@@ -675,15 +676,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                       ),
                     ),
                   ),
-                  CSControl(
-                    "API Schlüssel",
-                    Text(
-                      api.authToken,
-                      style: const TextStyle(
-                        color: CupertinoColors.black,
-                      ),
-                    ),
-                  ),
+                  CSSecret("API Schlüssel", api.authToken),
                   CSButton(CSButtonType.DESTRUCTIVE, "Abmelden", () {
                     Navigator.of(context, rootNavigator: true)
                         .pushReplacement(CupertinoPageRoute(builder: (BuildContext context) => CredentialsPage()))
