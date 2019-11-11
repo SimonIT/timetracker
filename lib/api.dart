@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:timetracker/data.dart';
+import 'package:path/path.dart' as path;
 
 String authCompany;
 String authUsername;
@@ -238,6 +240,21 @@ Future<List<Task>> loadTasks() async {
   } else {
     return null;
   }
+}
+
+Future<void> uploadDocument(File document) async {
+  http.MultipartRequest request = http.MultipartRequest("POST", Uri.parse("${baseUrl}documents"));
+  request.fields["auth_token"] = authToken;
+  request.files.add(
+    http.MultipartFile(
+      'document[data]',
+      document.openRead(),
+      await document.length(),
+      filename: path.basename(document.path),
+    ),
+  );
+  http.StreamedResponse result = await request.send();
+  print("${result.statusCode}: ${result.reasonPhrase}");
 }
 
 void writeCredsToLocalStore(String company, String username, String token) {
