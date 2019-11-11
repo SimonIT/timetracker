@@ -28,7 +28,10 @@ final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 Future<void> saveSettingsCheckToken(String company, String username, String password) async {
   http.Response result = await http.post(
     'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth',
-    body: "email=${Uri.encodeQueryComponent(username)}&password=${Uri.encodeQueryComponent(password)}",
+    body: {
+      "email": Uri.encodeQueryComponent(username),
+      "password": Uri.encodeQueryComponent(password),
+    },
     headers: headers,
   );
   switch (result.statusCode) {
@@ -51,7 +54,7 @@ Future<void> authenticate() async {
   if (await loadCredentials()) {
     http.Response result = await http.post(
       "${baseUrl}auth",
-      body: "auth_token=$authToken",
+      body: {"auth_token": authToken},
       headers: headers,
     );
     if (result.statusCode == 200) {
@@ -104,23 +107,29 @@ Future<TrackerState> loadTrackerState() async {
 
 Future<void> setTrackerState(TrackerState state) async {
   if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    String body = "auth_token=$authToken"
-        "&timer_state%5Buuid%5D=${state.uuid}"
-        "&timer_state%5Bstatus%5D=${state.status}"
-        "&timer_state%5Btask_name%5D=${Uri.encodeQueryComponent(state.task_name)}"
-        "&timer_state%5Bstarted_at%5D=${state.started_at}"
-        "&timer_state%5Bstopped_at%5D=${state.stopped_at}"
-        "&timer_state%5Bended_at%5D=${state.stopped_at}"
-        "&timer_state%5Bpaused_duration%5D=${state.paused_duration}"
-        "&timer_state%5Bentry_date%5D=${state.entry_date}"
-        "&timer_state%5Bcomment%5D=${Uri.encodeQueryComponent(state.comment)}"
-        "&timer_state%5Bmanual_time_change%5D=${state.manual_time_change}";
+    Map<String, String> body = {
+      "auth_token": authToken,
+      "timer_state[uuid]": state.uuid,
+      "timer_state[status]": state.status,
+      "timer_state[task_name]": Uri.encodeQueryComponent(state.task_name),
+      "timer_state[started_at]": state.started_at,
+      "timer_state[stopped_at]": state.stopped_at,
+      "timer_state[ended_at]": state.ended_at,
+      "timer_state[paused_duration]": state.paused_duration,
+      "timer_state[entry_date]": state.entry_date,
+      "timer_state[comment]": Uri.encodeQueryComponent(state.comment),
+      "timer_state[manual_time_change]": state.manual_time_change,
+    };
     if (state.project != null) {
-      body += "&timer_state%5Bproject%5D%5Bid%5D=${state.project.id}"
-          "&timer_state%5Bproject%5D%5Bname%5D=${Uri.encodeQueryComponent(state.project.name)}"
-          "&timer_state%5Bproject%5D%5Bcustomer%5D=${Uri.encodeQueryComponent(state.project.customer)}";
+      body.addAll({
+        "timer_state[project][id]": state.project.id,
+        "timer_state[project][name]": Uri.encodeQueryComponent(state.project.name),
+        "timer_state[project][customer]": Uri.encodeQueryComponent(state.project.customer)
+      });
     } else {
-      body += "&timer_state%5Bproject%5D=";
+      body.addAll({
+        "timer_state[project]": "",
+      });
     }
 
     http.Response result = await http.post(
@@ -142,14 +151,17 @@ Future<void> postTrackedTime(TrackerState state) async {
     http.Response result = await http.post(
       "${baseUrl}tracker/time_entries.json",
       headers: headers,
-      body: "auth_token=$authToken"
-          "&tracker_time_entry%5Bstarted_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt()))}"
-          "&tracker_time_entry%5Bended_at%5D=${Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt()))}"
-          "&tracker_time_entry%5Bcomments%5D=${Uri.encodeQueryComponent(state.comment)}"
-          "&tracker_time_entry%5Bduration%5D=${(state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes}"
-          "&project_id=${state.project.id}"
-          "&task_name=${Uri.encodeQueryComponent(state.task_name)}"
-          "&timer=true",
+      body: {
+        "auth_token": authToken,
+        "tracker_time_entry[started_at]": Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt())),
+        "tracker_time_entry[ended_at]": Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt())),
+        "tracker_time_entry[comments]": Uri.encodeQueryComponent(state.comment),
+        "tracker_time_entry[duration]":
+            (state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes,
+        "project_id": state.project.id,
+        "task_name": Uri.encodeQueryComponent(state.task_name),
+        "timer": "true",
+      },
     );
     if (result.statusCode == 200) {
       Map<String, dynamic> apiResponse = jsonDecode(result.body);
