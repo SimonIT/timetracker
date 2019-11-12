@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app_review/app_review.dart';
 import 'package:duration/duration.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cupertino_settings/flutter_cupertino_settings.dart';
@@ -629,7 +631,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                           FocusScope.of(context).requestFocus(_projectFocus);
                         },
                       ),
-                    )
+                    ),
                   ],
                 );
               },
@@ -642,12 +644,30 @@ class _TimeTrackerState extends State<TimeTracker> {
                   onRefresh: () => _refresh(context),
                   bottomBouncing: false,
                   child: CupertinoScrollbar(
-                    child: SingleChildScrollView(
+                    child: ListView(
+                      shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(
                         vertical: 16.0,
                       ),
                       physics: const ClampingScrollPhysics(),
-                      child: getRecentEntryTable(),
+                      children: [
+                        getRecentEntryTable(),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CupertinoButton.filled(
+                            child: Text("Dokument hochladen"),
+                            onPressed: () {
+                              FilePicker.getMultiFile().then((List<File> files) {
+                                if (files != null) {
+                                  for (File file in files) {
+                                    api.uploadDocument(file);
+                                  }
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
