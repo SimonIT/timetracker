@@ -616,9 +616,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                                         child: const Text(
                                           "Abbrechen",
                                         ),
-                                        onPressed: () {
-                                          Navigator.of(context, rootNavigator: true).pop("Abbrechen");
-                                        },
+                                        onPressed: () => Navigator.of(context, rootNavigator: true).pop("Abbrechen"),
                                       ),
                                     ],
                                   ),
@@ -660,7 +658,25 @@ class _TimeTrackerState extends State<TimeTracker> {
                               FilePicker.getMultiFile().then((List<File> files) {
                                 if (files != null) {
                                   for (File file in files) {
-                                    api.uploadDocument(file);
+                                    api.uploadDocument(file).catchError((Object e) {
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder: (BuildContext context) => CupertinoAlertDialog(
+                                          title: const Text("Ein Fehler ist beim Hochladen aufgetreten"),
+                                          content: Text(e.toString()),
+                                          actions: [
+                                            CupertinoDialogAction(
+                                              isDefaultAction: true,
+                                              child: const Text(
+                                                "Schließen",
+                                                style: const TextStyle(color: CupertinoColors.destructiveRed),
+                                              ),
+                                              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
+                                            )
+                                          ],
+                                        ),
+                                      );
+                                    });
                                   }
                                 }
                               });

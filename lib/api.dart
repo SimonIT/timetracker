@@ -48,7 +48,7 @@ Future<void> saveSettingsCheckToken(String company, String username, String pass
     case 401:
       throw Exception("Falsche Anmeldedaten");
     default:
-      throw Exception(result.reasonPhrase);
+      throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
@@ -93,158 +93,151 @@ Future<bool> loadCredentials() async {
 }
 
 Future<TrackerState> loadTrackerState() async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    http.Response result = await http.get(
-      "${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken",
-    );
-    if (result.statusCode == 200) {
-      return TrackerState.fromJson(jsonDecode(result.body));
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  http.Response result = await http.get(
+    "${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken",
+  );
+  if (result.statusCode == 200) {
+    return TrackerState.fromJson(jsonDecode(result.body));
   } else {
-    return null;
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<void> setTrackerState(TrackerState state) async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    Map<String, String> body = {
-      "auth_token": authToken,
-      "timer_state[uuid]": state.uuid,
-      "timer_state[status]": state.status,
-      "timer_state[task_name]": Uri.encodeQueryComponent(state.task_name),
-      "timer_state[started_at]": state.started_at,
-      "timer_state[stopped_at]": state.stopped_at,
-      "timer_state[ended_at]": state.ended_at,
-      "timer_state[paused_duration]": state.paused_duration,
-      "timer_state[entry_date]": state.entry_date,
-      "timer_state[comment]": Uri.encodeQueryComponent(state.comment),
-      "timer_state[manual_time_change]": state.manual_time_change,
-    };
-    if (state.project != null) {
-      body.addAll({
-        "timer_state[project][id]": state.project.id,
-        "timer_state[project][name]": Uri.encodeQueryComponent(state.project.name),
-        "timer_state[project][customer]": Uri.encodeQueryComponent(state.project.customer)
-      });
-    } else {
-      body.addAll({
-        "timer_state[project]": "",
-      });
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  Map<String, String> body = {
+    "auth_token": authToken,
+    "timer_state[uuid]": state.uuid,
+    "timer_state[status]": state.status,
+    "timer_state[task_name]": Uri.encodeQueryComponent(state.task_name),
+    "timer_state[started_at]": state.started_at,
+    "timer_state[stopped_at]": state.stopped_at,
+    "timer_state[ended_at]": state.ended_at,
+    "timer_state[paused_duration]": state.paused_duration,
+    "timer_state[entry_date]": state.entry_date,
+    "timer_state[comment]": Uri.encodeQueryComponent(state.comment),
+    "timer_state[manual_time_change]": state.manual_time_change,
+  };
+  if (state.project != null) {
+    body.addAll({
+      "timer_state[project][id]": state.project.id,
+      "timer_state[project][name]": Uri.encodeQueryComponent(state.project.name),
+      "timer_state[project][customer]": Uri.encodeQueryComponent(state.project.customer)
+    });
+  } else {
+    body.addAll({
+      "timer_state[project]": "",
+    });
+  }
 
-    http.Response result = await http.post(
-      "${baseUrl}tracker/time_entries/timer_state.json",
-      headers: headers,
-      body: body,
-    );
-    if (result.statusCode == 202) {
-      Map<String, dynamic> apiResponse = jsonDecode(result.body);
-      if (apiResponse["success"] != "true") throw Exception();
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  http.Response result = await http.post(
+    "${baseUrl}tracker/time_entries/timer_state.json",
+    headers: headers,
+    body: body,
+  );
+  if (result.statusCode == 202) {
+    Map<String, dynamic> apiResponse = jsonDecode(result.body);
+    if (apiResponse["success"] != "true") throw Exception();
+  } else {
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<void> postTrackedTime(TrackerState state) async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    http.Response result = await http.post(
-      "${baseUrl}tracker/time_entries.json",
-      headers: headers,
-      body: {
-        "auth_token": authToken,
-        "tracker_time_entry[started_at]": Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt())),
-        "tracker_time_entry[ended_at]": Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt())),
-        "tracker_time_entry[comments]": Uri.encodeQueryComponent(state.comment),
-        "tracker_time_entry[duration]":
-            (state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes,
-        "project_id": state.project.id,
-        "task_name": Uri.encodeQueryComponent(state.task_name),
-        "timer": "true",
-      },
-    );
-    if (result.statusCode == 200) {
-      Map<String, dynamic> apiResponse = jsonDecode(result.body);
-      if (apiResponse["success"] != "true") throw Exception();
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  http.Response result = await http.post(
+    "${baseUrl}tracker/time_entries.json",
+    headers: headers,
+    body: {
+      "auth_token": authToken,
+      "tracker_time_entry[started_at]": Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt())),
+      "tracker_time_entry[ended_at]": Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt())),
+      "tracker_time_entry[comments]": Uri.encodeQueryComponent(state.comment),
+      "tracker_time_entry[duration]":
+          (state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes,
+      "project_id": state.project.id,
+      "task_name": Uri.encodeQueryComponent(state.task_name),
+      "timer": "true",
+    },
+  );
+  if (result.statusCode == 200) {
+    Map<String, dynamic> apiResponse = jsonDecode(result.body);
+    if (apiResponse["success"] != "true") throw Exception();
+  } else {
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<List<Company>> loadCustomers() async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    http.Response result = await http.get(
-      "${baseUrl}contact/companies.json?auth_token=$authToken",
-    );
-    if (result.statusCode == 200) {
-      return (jsonDecode(result.body) as List)
-          .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  http.Response result = await http.get(
+    "${baseUrl}contact/companies.json?auth_token=$authToken",
+  );
+  if (result.statusCode == 200) {
+    return (jsonDecode(result.body) as List)
+        .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
+        .toList();
   } else {
-    return null;
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<List<Project>> loadProjects({String searchPattern}) async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    String url = "${baseUrl}projects.json?auth_token=$authToken";
-    if (searchPattern != null) url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
-    http.Response result = await http.get(
-      url,
-    );
-    if (result.statusCode == 200) {
-      return (jsonDecode(result.body) as List)
-          .map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  String url = "${baseUrl}projects.json?auth_token=$authToken";
+  if (searchPattern != null) url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
+  http.Response result = await http.get(
+    url,
+  );
+  if (result.statusCode == 200) {
+    return (jsonDecode(result.body) as List)
+        .map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
+        .toList();
   } else {
-    return null;
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<Project> loadProject(int id) async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    http.Response result = await http.get(
-      "${baseUrl}projects/$id.json?auth_token=$authToken",
-    );
-    if (result.statusCode == 200) {
-      return Project.fromJson(jsonDecode(result.body));
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  http.Response result = await http.get(
+    "${baseUrl}projects/$id.json?auth_token=$authToken",
+  );
+  if (result.statusCode == 200) {
+    return Project.fromJson(jsonDecode(result.body));
   } else {
-    return null;
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<List<Task>> loadTasks() async {
-  if (baseUrl != null && baseUrl.isNotEmpty && authToken != null && authToken.isNotEmpty) {
-    http.Response result = await http.get(
-      "${baseUrl}tracker/tasks.json?auth_token=$authToken",
-    );
-    if (result.statusCode == 200) {
-      return (jsonDecode(result.body) as List)
-          .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception(result.reasonPhrase);
-    }
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
+  http.Response result = await http.get(
+    "${baseUrl}tracker/tasks.json?auth_token=$authToken",
+  );
+  if (result.statusCode == 200) {
+    return (jsonDecode(result.body) as List)
+        .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
+        .toList();
   } else {
-    return null;
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
 }
 
 Future<void> uploadDocument(File document) async {
+  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
+    throw Exception("Not logged in");
   http.MultipartRequest request = http.MultipartRequest("POST", Uri.parse("${baseUrl}documents"));
   request.fields["auth_token"] = authToken;
+  request.headers.addAll(headers);
   request.files.add(
     http.MultipartFile(
       'document[data]',
@@ -254,7 +247,9 @@ Future<void> uploadDocument(File document) async {
     ),
   );
   http.StreamedResponse result = await request.send();
-  print("${result.statusCode}: ${result.reasonPhrase}");
+  if (result.statusCode != 200) {
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
+  }
 }
 
 void writeCredsToLocalStore(String company, String username, String token) {
