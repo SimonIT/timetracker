@@ -28,6 +28,7 @@ dependencies:
   in_app_purchase: ^0.2.2+2
   app_review: ^1.0.0
   file_picker: ^1.4.2
+  open_file: ^2.1.1
 
 dev_dependencies:
   flutter_test:

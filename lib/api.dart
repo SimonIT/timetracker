@@ -232,7 +232,7 @@ Future<List<Task>> loadTasks() async {
   }
 }
 
-Future<void> uploadDocument(File document) async {
+Future<String> uploadDocument(File document) async {
   if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
     throw Exception("Not logged in");
   http.MultipartRequest request = http.MultipartRequest("POST", Uri.parse("${baseUrl}documents"));
@@ -247,9 +247,10 @@ Future<void> uploadDocument(File document) async {
     ),
   );
   http.StreamedResponse result = await request.send();
-  if (result.statusCode != 200) {
+  if (result.statusCode != 201) {
     throw Exception("${result.statusCode}: ${result.reasonPhrase}");
   }
+  return result.headers["location"];
 }
 
 void writeCredsToLocalStore(String company, String username, String token) {

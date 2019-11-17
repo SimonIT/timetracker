@@ -12,6 +12,7 @@ import 'package:flutter_easyrefresh/material_header.dart';
 import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
 import 'package:timetracker/data.dart';
@@ -192,10 +193,8 @@ class _TimeTrackerState extends State<TimeTracker> {
             actions: [
               CupertinoDialogAction(
                 isDefaultAction: true,
-                child: const Text(
-                  "Schließen",
-                  style: const TextStyle(color: CupertinoColors.destructiveRed),
-                ),
+                isDestructiveAction: true,
+                child: const Text("Schließen"),
                 onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
               )
             ],
@@ -555,10 +554,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                                         actions: [
                                           CupertinoDialogAction(
                                             isDefaultAction: true,
-                                            child: const Text(
-                                              "Schließen",
-                                              style: const TextStyle(color: CupertinoColors.destructiveRed),
-                                            ),
+                                            isDestructiveAction: true,
+                                            child: const Text("Schließen"),
                                             onPressed: () {
                                               Navigator.of(context, rootNavigator: true).pop("Cancel");
                                             },
@@ -658,7 +655,30 @@ class _TimeTrackerState extends State<TimeTracker> {
                               FilePicker.getMultiFile().then((List<File> files) {
                                 if (files != null) {
                                   for (File file in files) {
-                                    api.uploadDocument(file).catchError((Object e) {
+                                    api.uploadDocument(file).then((String link) {
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder: (BuildContext context) => CupertinoAlertDialog(
+                                          title: const Text("Das Dokument wurde erfolgreich hochgeladen"),
+                                          actions: [
+                                            CupertinoDialogAction(
+                                              child: const Text("Öffnen"),
+                                              onPressed: () => OpenFile.open(file.path),
+                                            ),
+                                            CupertinoDialogAction(
+                                              child: const Text("Öffne im Browser"),
+                                              onPressed: () => launch(link),
+                                            ),
+                                            CupertinoDialogAction(
+                                              isDestructiveAction: true,
+                                              isDefaultAction: true,
+                                              child: const Text("Schließen"),
+                                              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).catchError((Object e) {
                                       showCupertinoDialog(
                                         context: context,
                                         builder: (BuildContext context) => CupertinoAlertDialog(
@@ -667,10 +687,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                                           actions: [
                                             CupertinoDialogAction(
                                               isDefaultAction: true,
-                                              child: const Text(
-                                                "Schließen",
-                                                style: const TextStyle(color: CupertinoColors.destructiveRed),
-                                              ),
+                                              isDestructiveAction: true,
+                                              child: const Text("Schließen"),
                                               onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
                                             )
                                           ],
@@ -815,9 +833,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                   child: const Text(
                     "Abbrechen",
                   ),
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop("Cancel");
-                  },
+                  onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
                 )
               ],
             ),
@@ -1048,10 +1064,8 @@ class _CredentialsPageState extends State<CredentialsPage> {
               },
             ),
             CupertinoDialogAction(
-              child: const Text(
-                "Schließen",
-                style: const TextStyle(color: CupertinoColors.destructiveRed),
-              ),
+              isDestructiveAction: true,
+              child: const Text("Schließen"),
               onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
             ),
           ],
@@ -1171,10 +1185,8 @@ class _CredentialsPageState extends State<CredentialsPage> {
                           actions: [
                             CupertinoDialogAction(
                               isDefaultAction: true,
-                              child: const Text(
-                                "Schließen",
-                                style: const TextStyle(color: CupertinoColors.destructiveRed),
-                              ),
+                              isDestructiveAction: true,
+                              child: const Text("Schließen"),
                               onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
                             ),
                           ],
