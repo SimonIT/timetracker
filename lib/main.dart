@@ -303,6 +303,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                           placeholder: "Kunde/Projekt",
                           autocorrect: false,
                           maxLines: 1,
+                          style: state.project != null ?
+                              TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor) : null,
                         ),
                         hideOnEmpty: true,
                         keepSuggestionsOnLoading: true,
