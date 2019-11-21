@@ -303,8 +303,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                           placeholder: "Kunde/Projekt",
                           autocorrect: false,
                           maxLines: 1,
-                          style: state.project != null ?
-                              TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor) : null,
+                          style: state.project != null
+                              ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
+                              : null,
                         ),
                         hideOnEmpty: true,
                         keepSuggestionsOnLoading: true,
@@ -355,6 +356,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                           state.task_name = text;
                           api.setTrackerState(state);
                         },
+                        style: state.project != null
+                            ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
+                            : null,
                       ),
                     ),
                     Padding(
