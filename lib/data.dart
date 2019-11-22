@@ -127,7 +127,7 @@ class TrackerState {
 
   TrackerState();
 
-  setStatus(bool state) {
+  void setStatus(bool state) {
     if (state) {
       this.status = "running";
     } else {

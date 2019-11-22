@@ -356,7 +356,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                           state.task_name = text;
                           api.setTrackerState(state);
                         },
-                        style: state.project != null
+                        style: state.project == null
                             ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
                             : null,
                       ),
@@ -585,50 +585,18 @@ class _TimeTrackerState extends State<TimeTracker> {
                       child: CupertinoButton.filled(
                         child: const Text("Verwerfen"),
                         onPressed: () {
-                          state.hasStartedTime() || state.hasStoppedTime()
-                              ? showCupertinoDialog(
-                                  context: context,
-                                  builder: (BuildContext context) => CupertinoAlertDialog(
-                                    title: Icon(
-                                      const IconData(
-                                        0xF3BC,
-                                        fontFamily: CupertinoIcons.iconFont,
-                                        fontPackage: CupertinoIcons.iconFontPackage,
-                                        matchTextDirection: true,
-                                      ),
-                                      color: CupertinoTheme.of(context).primaryContrastingColor,
-                                    ),
-                                    content: const Text("Wollen Sie die erfassten Zeiten wirklich verwerfen?"),
-                                    actions: [
-                                      CupertinoDialogAction(
-                                        isDefaultAction: true,
-                                        child: const Text(
-                                          "OK",
-                                        ),
-                                        onPressed: () {
-                                          Navigator.of(context, rootNavigator: true).pop("OK");
-                                          setState(() {
-                                            state.empty();
-                                            api.setTrackerState(state);
-                                            updateInputs();
-                                          });
-                                        },
-                                      ),
-                                      CupertinoDialogAction(
-                                        isDefaultAction: true,
-                                        child: const Text(
-                                          "Abbrechen",
-                                        ),
-                                        onPressed: () => Navigator.of(context, rootNavigator: true).pop("Abbrechen"),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : setState(() {
-                                  state.empty();
-                                  api.setTrackerState(state);
-                                  updateInputs();
-                                });
+                          showDialogWithCondition(
+                            context,
+                            state.hasStartedTime() ||
+                                state.hasStoppedTime() ||
+                                state.getStartedAt() == state.getStoppedAt(),
+                            "Wollen Sie die erfassten Zeiten wirklich verwerfen?",
+                            () => setState(() {
+                              state.empty();
+                              api.setTrackerState(state);
+                              updateInputs();
+                            }),
+                          );
                           FocusScope.of(context).requestFocus(_projectFocus);
                         },
                       ),
@@ -849,17 +817,15 @@ class _TimeTrackerState extends State<TimeTracker> {
           if (state.getStatus()) {
             if (!state.hasStartedTime()) {
               state.setStartedAt(DateTime.now());
-              api.setTrackerState(state);
             } else {
               state.setPausedDuration(state.getPausedDuration() + DateTime.now().difference(state.getEndedAt()));
               state.stopped_at = "0";
               state.ended_at = "0";
-              api.setTrackerState(state);
             }
           } else {
             state.setStoppedAt(DateTime.now());
-            api.setTrackerState(state);
           }
+          api.setTrackerState(state);
         }
       } else {
         showNoProjectDialog(context);
