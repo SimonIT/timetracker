@@ -103,6 +103,7 @@ class _TimeTrackerState extends State<TimeTracker> {
 
   Timer _t;
   bool highlightBreaks = false;
+  bool taskSuggestions = false;
   SharedPreferences prefs;
   List<ProductDetails> products;
 
@@ -111,6 +112,7 @@ class _TimeTrackerState extends State<TimeTracker> {
     SharedPreferences.getInstance().then((SharedPreferences prefs) {
       this.prefs = prefs;
       this.highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
+      this.taskSuggestions = prefs.getBool("taskSuggestions") ?? false;
       int appLaunches = prefs.getInt("appLaunches") ?? 0;
       if (appLaunches > 4) {
         Future.delayed(
@@ -308,6 +310,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               : null,
                         ),
                         hideOnEmpty: true,
+                        noItemsFoundBuilder: (BuildContext context) => Container(),
                         keepSuggestionsOnLoading: true,
                         suggestionsBoxVerticalOffset: 0,
                         itemBuilder: (BuildContext context, Project itemData) {
@@ -344,21 +347,46 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: CupertinoTextField(
-                        controller: _task,
-                        focusNode: _taskFocus,
-                        autofocus: state.project != null && _task.text.isEmpty,
-                        enabled: state.project != null,
-                        placeholder: "Aufgabe",
-                        autocorrect: false,
-                        maxLines: 1,
-                        onChanged: (String text) {
-                          state.task_name = text;
-                          api.setTrackerState(state);
+                      child: CupertinoTypeAheadField(
+                        textFieldConfiguration: CupertinoTextFieldConfiguration(
+                          controller: _task,
+                          focusNode: _taskFocus,
+                          autofocus: state.project != null && _task.text.isEmpty,
+                          enabled: state.project != null,
+                          placeholder: "Aufgabe",
+                          autocorrect: false,
+                          maxLines: 1,
+                          onChanged: (String text) {
+                            state.task_name = text;
+                            api.setTrackerState(state);
+                          },
+                          style: state.project == null
+                              ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
+                              : null,
+                        ),
+                        hideOnEmpty: true,
+                        noItemsFoundBuilder: (BuildContext context) => Container(),
+                        onSuggestionSelected: (String suggestion) => _task.text = suggestion,
+                        suggestionsCallback: (String pattern) async {
+                          if (!taskSuggestions) return <String>[];
+                          return (await api.loadTasks())
+                              .where((Task t) => state.project.id == t.project_id.toString())
+                              .map((Task t) => t.name)
+                              .toSet()
+                              .where((String t) => t.toLowerCase().contains(pattern.toLowerCase()))
+                              .toList();
                         },
-                        style: state.project == null
-                            ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
-                            : null,
+                        keepSuggestionsOnLoading: true,
+                        suggestionsBoxVerticalOffset: 0,
+                        itemBuilder: (BuildContext context, String task) {
+                          return Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Text(
+                              task,
+                              style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     Padding(
@@ -587,9 +615,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                         onPressed: () {
                           showDialogWithCondition(
                             context,
-                            state.hasStartedTime() ||
-                                state.hasStoppedTime() ||
-                                state.getStartedAt() == state.getStoppedAt(),
+                            (state.hasStartedTime() || state.hasStoppedTime()) &&
+                                state.getStartedAt() != state.getStoppedAt(),
                             "Wollen Sie die erfassten Zeiten wirklich verwerfen?",
                             () => setState(() {
                               state.empty();
@@ -724,6 +751,16 @@ class _TimeTrackerState extends State<TimeTracker> {
                       value: highlightBreaks,
                     ),
                   ),
+                  CSControl(
+                    "Aufgaben vorschlagen",
+                    CupertinoSwitch(
+                      onChanged: (bool changed) => setState(() {
+                        taskSuggestions = changed;
+                        prefs.setBool("taskSuggestions", changed);
+                      }),
+                      value: taskSuggestions,
+                    ),
+                  ),
                 ];
 
                 if (products != null && products.isNotEmpty) {
@@ -799,6 +836,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true).pop("OK");
                     state.setManualTimeChange(false);
+                    state.started_at = "0";
+                    state.stopped_at = "0";
+                    state.ended_at = "0";
                     track(context);
                   },
                 ),
