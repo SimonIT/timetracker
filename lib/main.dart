@@ -108,7 +108,6 @@ class _TimeTrackerState extends State<TimeTracker> {
   List<ProductDetails> products;
 
   _TimeTrackerState({@required this.state}) {
-    updateInputs();
     SharedPreferences.getInstance().then((SharedPreferences prefs) {
       this.prefs = prefs;
       this.highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
@@ -158,6 +157,7 @@ class _TimeTrackerState extends State<TimeTracker> {
   @override
   void initState() {
     super.initState();
+    updateInputs();
     InAppPurchaseConnection.instance.isAvailable().then((bool available) {
       if (available)
         InAppPurchaseConnection.instance
@@ -177,10 +177,8 @@ class _TimeTrackerState extends State<TimeTracker> {
     try {
       await api.authenticate();
       api.loadTrackerState().then((TrackerState state) {
-        setState(() {
-          this.state = state;
-          updateInputs();
-        });
+        this.state = state;
+        updateInputs();
       });
     } catch (e) {
       Navigator.of(context, rootNavigator: true)
@@ -206,11 +204,11 @@ class _TimeTrackerState extends State<TimeTracker> {
     }
   }
 
-  void updateInputs() {
-    _project.text = state.project is StateProject ? state.project.title : "";
-    _task.text = state.task_name;
-    _comment.text = state.comment;
-  }
+  void updateInputs() => setState(() {
+        _project.text = state.project is StateProject ? state.project.title : "";
+        _task.text = state.task_name;
+        _comment.text = state.comment;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -323,23 +321,19 @@ class _TimeTrackerState extends State<TimeTracker> {
                           );
                         },
                         onSuggestionSelected: (Project suggestion) {
-                          setState(() {
-                            state.setProject(suggestion);
-                            api.setTrackerState(state);
-                            updateInputs();
-                          });
+                          state.setProject(suggestion);
+                          api.setTrackerState(state);
+                          updateInputs();
                           FocusScope.of(context).requestFocus(_taskFocus);
                         },
                         suggestionsCallback: (String pattern) async {
                           List<Project> p = await api.loadProjects(searchPattern: pattern);
                           if (p.length == 1) {
-                            _projectSuggestion.close();
-                            setState(() {
-                              state.setProject(p[0]);
-                              api.setTrackerState(state);
-                              updateInputs();
-                            });
+                            state.setProject(p[0]);
+                            api.setTrackerState(state);
+                            updateInputs();
                             FocusScope.of(context).requestFocus(_taskFocus);
+                            return <Project>[];
                           }
                           return p;
                         },
@@ -366,7 +360,11 @@ class _TimeTrackerState extends State<TimeTracker> {
                         ),
                         hideOnEmpty: true,
                         noItemsFoundBuilder: (BuildContext context) => Container(),
-                        onSuggestionSelected: (String suggestion) => _task.text = suggestion,
+                        onSuggestionSelected: (String suggestion) {
+                          state.task_name = suggestion;
+                          api.setTrackerState(state);
+                          updateInputs();
+                        },
                         suggestionsCallback: (String pattern) async {
                           if (!taskSuggestions) return <String>[];
                           return (await api.loadTasks())
@@ -634,11 +632,11 @@ class _TimeTrackerState extends State<TimeTracker> {
                             (state.hasStartedTime() || state.hasStoppedTime()) &&
                                 state.getStartedAt() != state.getStoppedAt(),
                             "Wollen Sie die erfassten Zeiten wirklich verwerfen?",
-                            () => setState(() {
+                            () {
                               state.empty();
                               api.setTrackerState(state);
                               updateInputs();
-                            }),
+                            },
                           );
                           FocusScope.of(context).requestFocus(_projectFocus);
                         },
