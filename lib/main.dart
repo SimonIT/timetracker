@@ -559,6 +559,22 @@ class _TimeTrackerState extends State<TimeTracker> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: <Widget>[
+                          CupertinoSwitch(
+                            value: !state.getUnbillable(),
+                            onChanged: (bool newVal) {
+                              state.setUnbillable(!newVal);
+                              api.setTrackerState(state);
+                            },
+                          ),
+                          Text("Abrechenbar?"),
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: <Widget>[
                           TrackingLabel(state),
                           TrackingButton(
                             onPressed: () => track(context),
@@ -584,7 +600,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                                       context: context,
                                       builder: (BuildContext context) => CupertinoAlertDialog(
                                         title: const Text("Ein Fehler ist beim Buchen aufgetreten"),
-                                        content: Text(e.message),
+                                        content: Text(e.toString()),
                                         actions: [
                                           CupertinoDialogAction(
                                             isDefaultAction: true,

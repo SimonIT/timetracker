@@ -175,6 +175,7 @@ TrackerState _$TrackerStateFromJson(Map<String, dynamic> json) {
     ..entry_date = json['entry_date'] as String
     ..comment = json['comment'] as String
     ..manual_time_change = json['manual_time_change'] as String
+    ..unbillable = json['unbillable'] as String
     ..project = json['project'] == null || (json['project'] is String && (json['project'] as String).isEmpty)
         ? null
         : StateProject.fromJson(json['project'] as Map<String, dynamic>)
@@ -197,6 +198,7 @@ Map<String, dynamic> _$TrackerStateToJson(TrackerState instance) => <String, dyn
       'entry_date': instance.entry_date,
       'comment': instance.comment,
       'manual_time_change': instance.manual_time_change,
+      'unbillable': instance.unbillable,
       'project': instance.project,
       'recent_entries': instance.recent_entries,
       'tracked_today': instance.tracked_today,

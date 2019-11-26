@@ -120,6 +120,7 @@ class TrackerState {
   String comment;
   String manual_time_change;
   StateProject project;
+  String unbillable;
   List<Entry> recent_entries;
   int tracked_today;
   int tracked_week;
@@ -176,6 +177,14 @@ class TrackerState {
     return this.manual_time_change.toLowerCase() == "true";
   }
 
+  void setUnbillable(bool unbillable) {
+    this.unbillable = unbillable.toString();
+  }
+
+  bool getUnbillable() {
+    return this.unbillable == "true";
+  }
+
   void setPausedDuration(Duration pausedDuration) {
     this.paused_duration = pausedDuration.inMilliseconds.toString();
   }
@@ -223,6 +232,7 @@ class TrackerState {
     this.entry_date = "heute";
     this.paused_duration = "0";
     this.manual_time_change = "false";
+    this.unbillable = "false";
     this.status = "stopped";
   }
 

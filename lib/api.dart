@@ -31,8 +31,8 @@ Future<void> saveSettingsCheckToken(String company, String username, String pass
   http.Response result = await http.post(
     'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth',
     body: {
-      "email": Uri.encodeQueryComponent(username),
-      "password": Uri.encodeQueryComponent(password),
+      "email": username,
+      "password": password,
     },
     headers: headers,
   );
@@ -112,20 +112,21 @@ Future<void> setTrackerState(TrackerState state) async {
     "auth_token": authToken,
     "timer_state[uuid]": state.uuid,
     "timer_state[status]": state.status,
-    "timer_state[task_name]": Uri.encodeQueryComponent(state.task_name),
+    "timer_state[task_name]": state.task_name,
     "timer_state[started_at]": state.started_at,
     "timer_state[stopped_at]": state.stopped_at,
     "timer_state[ended_at]": state.ended_at,
     "timer_state[paused_duration]": state.paused_duration,
     "timer_state[entry_date]": state.entry_date,
-    "timer_state[comment]": Uri.encodeQueryComponent(state.comment),
+    "timer_state[comment]": state.comment,
     "timer_state[manual_time_change]": state.manual_time_change,
+    "timer_state[unbillable]": state.unbillable,
   };
   if (state.project != null) {
     body.addAll({
       "timer_state[project][id]": state.project.id,
-      "timer_state[project][name]": Uri.encodeQueryComponent(state.project.name),
-      "timer_state[project][customer]": Uri.encodeQueryComponent(state.project.customer)
+      "timer_state[project][name]": state.project.name,
+      "timer_state[project][customer]": state.project.customer
     });
   } else {
     body.addAll({
@@ -154,13 +155,14 @@ Future<void> postTrackedTime(TrackerState state) async {
     headers: headers,
     body: {
       "auth_token": authToken,
-      "tracker_time_entry[started_at]": Uri.encodeQueryComponent(apiFormat.format(state.getStartedAt())),
-      "tracker_time_entry[ended_at]": Uri.encodeQueryComponent(apiFormat.format(state.getEndedAt())),
-      "tracker_time_entry[comments]": Uri.encodeQueryComponent(state.comment),
+      "tracker_time_entry[started_at]": apiFormat.format(state.getStartedAt()),
+      "tracker_time_entry[ended_at]": apiFormat.format(state.getEndedAt()),
+      "tracker_time_entry[comments]": state.comment,
       "tracker_time_entry[duration]":
-          (state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes,
+          (state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes.toString(),
+      "tracker_time_entry[unbillable]": state.unbillable,
       "project_id": state.project.id,
-      "task_name": Uri.encodeQueryComponent(state.task_name),
+      "task_name": state.task_name,
       "timer": "true",
     },
   );
