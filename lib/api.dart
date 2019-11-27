@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:timetracker/data.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:path_provider/path_provider.dart';
 
 String authCompany;
 String authUsername;
@@ -26,6 +28,8 @@ const Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
 };
 final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+
+BaseCacheManager m = MyCacheManager();
 
 Future<void> saveSettingsCheckToken(String company, String username, String password) async {
   http.Response result = await http.post(
@@ -194,16 +198,10 @@ Future<List<Project>> loadProjects({String searchPattern}) async {
     throw Exception("Not logged in");
   String url = "${baseUrl}projects.json?auth_token=$authToken";
   if (searchPattern != null) url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
-  http.Response result = await http.get(
-    url,
-  );
-  if (result.statusCode == 200) {
-    return (jsonDecode(result.body) as List)
-        .map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
-        .toList();
-  } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
-  }
+  File pf = await m.getSingleFile(url);
+  return (jsonDecode(pf.readAsStringSync()) as List)
+      .map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
 Future<Project> loadProject(int id) async {
@@ -222,16 +220,10 @@ Future<Project> loadProject(int id) async {
 Future<List<Task>> loadTasks() async {
   if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
     throw Exception("Not logged in");
-  http.Response result = await http.get(
-    "${baseUrl}tracker/tasks.json?auth_token=$authToken",
-  );
-  if (result.statusCode == 200) {
-    return (jsonDecode(result.body) as List)
-        .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
-        .toList();
-  } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
-  }
+  File tf = await m.getSingleFile("${baseUrl}tracker/tasks.json?auth_token=$authToken");
+  return (jsonDecode(tf.readAsStringSync()) as List)
+      .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
 Future<String> uploadDocument(File document) async {
@@ -276,4 +268,37 @@ Future<Map<String, String>> readCredsFromLocalStore() async {
 void deleteCredsFromLocalStore() {
   final FlutterSecureStorage storage = new FlutterSecureStorage();
   storage.deleteAll();
+}
+
+class MyCacheManager extends BaseCacheManager {
+  static const key = "libTimeTrackerData";
+
+  static MyCacheManager _instance;
+
+  factory MyCacheManager() {
+    if (_instance == null) {
+      _instance = new MyCacheManager._();
+    }
+    return _instance;
+  }
+
+  MyCacheManager._() : super(key);
+
+  Future<String> getFilePath() async {
+    var directory = await getTemporaryDirectory();
+    return path.join(directory.path, key);
+  }
+
+  @override
+  Future<File> getSingleFile(String url, {Map<String, String> headers}) async {
+    FileInfo cacheFile = await getFileFromCache(url);
+    if (cacheFile != null) {
+      if (cacheFile.validTill.isBefore(DateTime.now())) {
+        webHelper.downloadFile(url, authHeaders: headers);
+      }
+      return cacheFile.file;
+    }
+    FileInfo download = await webHelper.downloadFile(url, authHeaders: headers);
+    return download.file;
+  }
 }
