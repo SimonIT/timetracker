@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:timetracker/data.dart';
 import 'package:path/path.dart' as path;
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:timetracker/data.dart';
 
 String authCompany;
 String authUsername;
@@ -34,7 +34,7 @@ BaseCacheManager m = MyCacheManager();
 Future<void> saveSettingsCheckToken(String company, String username, String password) async {
   http.Response result = await http.post(
     'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth',
-    body: {
+    body: <String, String>{
       "email": username,
       "password": password,
     },
@@ -60,7 +60,7 @@ Future<void> authenticate() async {
   if (await loadCredentials()) {
     http.Response result = await http.post(
       "${baseUrl}auth",
-      body: {"auth_token": authToken},
+      body: <String, String>{"auth_token": authToken},
       headers: headers,
     );
     if (result.statusCode == 200) {
@@ -99,20 +99,14 @@ Future<bool> loadCredentials() async {
 Future<TrackerState> loadTrackerState() async {
   if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
     throw Exception("Not logged in");
-  http.Response result = await http.get(
-    "${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken",
-  );
-  if (result.statusCode == 200) {
-    return TrackerState.fromJson(jsonDecode(result.body));
-  } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
-  }
+  File tsf = (await m.downloadFile("${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken")).file;
+  return TrackerState.fromJson(jsonDecode(tsf.readAsStringSync()));
 }
 
 Future<void> setTrackerState(TrackerState state) async {
   if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
     throw Exception("Not logged in");
-  Map<String, String> body = {
+  Map<String, String> body = <String, String>{
     "auth_token": authToken,
     "timer_state[uuid]": state.uuid,
     "timer_state[status]": state.status,
@@ -157,7 +151,7 @@ Future<void> postTrackedTime(TrackerState state) async {
   http.Response result = await http.post(
     "${baseUrl}tracker/time_entries.json",
     headers: headers,
-    body: {
+    body: <String, String>{
       "auth_token": authToken,
       "tracker_time_entry[started_at]": apiFormat.format(state.getStartedAt()),
       "tracker_time_entry[ended_at]": apiFormat.format(state.getEndedAt()),
@@ -181,16 +175,10 @@ Future<void> postTrackedTime(TrackerState state) async {
 Future<List<Company>> loadCustomers() async {
   if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
     throw Exception("Not logged in");
-  http.Response result = await http.get(
-    "${baseUrl}contact/companies.json?auth_token=$authToken",
-  );
-  if (result.statusCode == 200) {
-    return (jsonDecode(result.body) as List)
-        .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
-        .toList();
-  } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
-  }
+  File cf = await m.getSingleFile("${baseUrl}contact/companies.json?auth_token=$authToken");
+  return (jsonDecode(cf.readAsStringSync()) as List)
+      .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
 Future<List<Project>> loadProjects({String searchPattern}) async {
@@ -207,14 +195,8 @@ Future<List<Project>> loadProjects({String searchPattern}) async {
 Future<Project> loadProject(int id) async {
   if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
     throw Exception("Not logged in");
-  http.Response result = await http.get(
-    "${baseUrl}projects/$id.json?auth_token=$authToken",
-  );
-  if (result.statusCode == 200) {
-    return Project.fromJson(jsonDecode(result.body));
-  } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
-  }
+  File pf = await m.getSingleFile("${baseUrl}projects/$id.json?auth_token=$authToken");
+  return Project.fromJson(jsonDecode(pf.readAsStringSync()));
 }
 
 Future<List<Task>> loadTasks() async {
