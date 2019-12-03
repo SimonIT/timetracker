@@ -666,7 +666,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: CupertinoButton.filled(
-                            child: Text("Dokument hochladen"),
+                            child: Text(
+                              "Dokument hochladen \n (Experimentell)",
+                              textAlign: TextAlign.center,
+                            ),
                             onPressed: () {
                               FilePicker.getMultiFile().then((List<File> files) {
                                 if (files != null) {
