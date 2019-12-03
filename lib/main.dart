@@ -400,6 +400,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                           state.comment = text;
                           api.setTrackerState(state);
                         },
+                        style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                       ),
                     ),
                     Padding(
@@ -1136,6 +1137,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
                 placeholder: "Firmen ID",
                 autocorrect: false,
                 maxLines: 1,
+                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
               ),
             ),
             Padding(
@@ -1145,6 +1147,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
                 placeholder: "Nutzer",
                 autocorrect: false,
                 maxLines: 1,
+                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
               ),
             ),
             Padding(
@@ -1160,6 +1163,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
                     if (value.isEmpty) showPassword = false;
                   });
                 },
+                style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
               ),
             ),
             Padding(
