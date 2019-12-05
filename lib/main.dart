@@ -51,6 +51,7 @@ const BoxDecoration rowHeading = const BoxDecoration(
     ),
   ),
 );
+const String setTrackerError = "Ein Fehler ist beim Setzen des Status vom TimeTracker aufgetreten";
 final DateFormat hoursSeconds = DateFormat("HH:mm");
 final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 final DateFormat dayMonth = DateFormat("dd.MM.");
@@ -210,6 +211,26 @@ class _TimeTrackerState extends State<TimeTracker> {
         _comment.text = state.comment;
       });
 
+  Future<dynamic> catchError(Future<dynamic> future, {String title}) {
+    return future.catchError((Object e) {
+      showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: title ?? const Text("Ein Fehler ist aufgetreten"),
+          content: Text(e.toString()),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              isDestructiveAction: true,
+              child: const Text("Schließen"),
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
+            )
+          ],
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
@@ -322,7 +343,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                         },
                         onSuggestionSelected: (Project suggestion) {
                           state.setProject(suggestion);
-                          api.setTrackerState(state);
+                          catchError(
+                            api.setTrackerState(state),
+                            title: setTrackerError,
+                          );
                           updateInputs();
                           FocusScope.of(context).requestFocus(_taskFocus);
                         },
@@ -330,7 +354,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                           List<Project> p = await api.loadProjects(searchPattern: pattern);
                           if (p.length == 1) {
                             state.setProject(p[0]);
-                            api.setTrackerState(state);
+                            catchError(
+                              api.setTrackerState(state),
+                              title: setTrackerError,
+                            );
                             updateInputs();
                             FocusScope.of(context).requestFocus(_taskFocus);
                             return <Project>[];
@@ -352,7 +379,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                           maxLines: 1,
                           onChanged: (String text) {
                             state.task_name = text;
-                            api.setTrackerState(state);
+                            catchError(
+                              api.setTrackerState(state),
+                              title: setTrackerError,
+                            );
                           },
                           style: state.project == null
                               ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
@@ -362,7 +392,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                         noItemsFoundBuilder: (BuildContext context) => Container(),
                         onSuggestionSelected: (String suggestion) {
                           state.task_name = suggestion;
-                          api.setTrackerState(state);
+                          catchError(
+                            api.setTrackerState(state),
+                            title: setTrackerError,
+                          );
                           updateInputs();
                         },
                         suggestionsCallback: (String pattern) async {
@@ -398,7 +431,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                         keyboardType: TextInputType.multiline,
                         onChanged: (String text) {
                           state.comment = text;
-                          api.setTrackerState(state);
+                          catchError(
+                            api.setTrackerState(state),
+                            title: setTrackerError,
+                          );
                         },
                         style: TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor),
                       ),
@@ -457,7 +493,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                                                     state.setPausedDuration(const Duration());
                                                     state.setStartedAt(setDay(state.getStartedAt(), newDateTime));
                                                     state.setStoppedAt(setDay(state.getStoppedAt(), newDateTime));
-                                                    api.setTrackerState(state);
+                                                    catchError(
+                                                      api.setTrackerState(state),
+                                                      title: setTrackerError,
+                                                    );
                                                   });
                                                 },
                                               ),
@@ -500,7 +539,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                                                       state.setStoppedAt(state.getStartedAt());
                                                     else if (!state.hasStoppedTime())
                                                       state.setStoppedAt(DateTime.now());
-                                                    api.setTrackerState(state);
+                                                    catchError(
+                                                      api.setTrackerState(state),
+                                                      title: setTrackerError,
+                                                    );
                                                   });
                                                 },
                                               ),
@@ -536,7 +578,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                                                       state.setStartedAt(state.getStoppedAt());
                                                     else if (!state.hasStartedTime())
                                                       state.setStartedAt(DateTime.now());
-                                                    api.setTrackerState(state);
+                                                    catchError(
+                                                      api.setTrackerState(state),
+                                                      title: setTrackerError,
+                                                    );
                                                   });
                                                 },
                                               ),
@@ -562,7 +607,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                             value: !state.getUnbillable(),
                             onChanged: (bool newVal) {
                               state.setUnbillable(!newVal);
-                              api.setTrackerState(state);
+                              catchError(
+                                api.setTrackerState(state),
+                                title: setTrackerError,
+                              );
                             },
                           ),
                           Text("Abrechenbar?"),
@@ -614,7 +662,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                                     );
                                   }
                                   state.empty();
-                                  await api.setTrackerState(state);
+                                  await catchError(
+                                    api.setTrackerState(state),
+                                    title: setTrackerError,
+                                  );
                                   _refresh(context);
                                   FocusScope.of(context).requestFocus(_projectFocus);
                                 } else {
@@ -635,7 +686,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                             "Wollen Sie die erfassten Zeiten wirklich verwerfen?",
                             () {
                               state.empty();
-                              api.setTrackerState(state);
+                              catchError(
+                                api.setTrackerState(state),
+                                title: setTrackerError,
+                              );
                               updateInputs();
                             },
                           );
@@ -674,46 +728,34 @@ class _TimeTrackerState extends State<TimeTracker> {
                               FilePicker.getMultiFile().then((List<File> files) {
                                 if (files != null) {
                                   for (File file in files) {
-                                    api.uploadDocument(file).then((String link) {
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder: (BuildContext context) => CupertinoAlertDialog(
-                                          title: const Text("Das Dokument wurde erfolgreich hochgeladen"),
-                                          actions: [
-                                            CupertinoDialogAction(
-                                              child: const Text("Öffnen"),
-                                              onPressed: () => OpenFile.open(file.path),
-                                            ),
-                                            CupertinoDialogAction(
-                                              child: const Text("Öffne im Browser"),
-                                              onPressed: () => launch(link),
-                                            ),
-                                            CupertinoDialogAction(
-                                              isDestructiveAction: true,
-                                              isDefaultAction: true,
-                                              child: const Text("Schließen"),
-                                              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }).catchError((Object e) {
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder: (BuildContext context) => CupertinoAlertDialog(
-                                          title: const Text("Ein Fehler ist beim Hochladen aufgetreten"),
-                                          content: Text(e.toString()),
-                                          actions: [
-                                            CupertinoDialogAction(
-                                              isDefaultAction: true,
-                                              isDestructiveAction: true,
-                                              child: const Text("Schließen"),
-                                              onPressed: () => Navigator.of(context, rootNavigator: true).pop("Cancel"),
-                                            )
-                                          ],
-                                        ),
-                                      );
-                                    });
+                                    catchError(
+                                      api.uploadDocument(file).then((String link) {
+                                        showCupertinoDialog(
+                                          context: context,
+                                          builder: (BuildContext context) => CupertinoAlertDialog(
+                                            title: const Text("Das Dokument wurde erfolgreich hochgeladen"),
+                                            actions: [
+                                              CupertinoDialogAction(
+                                                child: const Text("Öffnen"),
+                                                onPressed: () => OpenFile.open(file.path),
+                                              ),
+                                              CupertinoDialogAction(
+                                                child: const Text("Öffne im Browser"),
+                                                onPressed: () => launch(link),
+                                              ),
+                                              CupertinoDialogAction(
+                                                isDestructiveAction: true,
+                                                isDefaultAction: true,
+                                                child: const Text("Schließen"),
+                                                onPressed: () =>
+                                                    Navigator.of(context, rootNavigator: true).pop("Cancel"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                      title: "Ein Fehler ist beim Hochladen aufgetreten",
+                                    );
                                   }
                                 }
                               });
@@ -883,7 +925,10 @@ class _TimeTrackerState extends State<TimeTracker> {
           } else {
             state.setStoppedAt(DateTime.now());
           }
-          api.setTrackerState(state);
+          catchError(
+            api.setTrackerState(state),
+            title: setTrackerError,
+          );
         }
       } else {
         showNoProjectDialog(context);

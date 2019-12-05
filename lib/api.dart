@@ -23,7 +23,7 @@ String baseUrl;
 const String apiDomain = ".papierkram.de"; // LIVE
 const String apiPath = "/api/v1/";
 
-const Map<String, String> headers = {
+const Map<String, String> headers = <String, String>{
   'Accept': 'application/json',
   'Content-Type': 'application/x-www-form-urlencoded',
 };
@@ -46,13 +46,15 @@ Future<void> saveSettingsCheckToken(String company, String username, String pass
       if ((jsonResult["token"] as String).isNotEmpty) {
         writeCredsToLocalStore(company, username, jsonResult["token"] as String);
         authenticate();
-      } else {}
+      } else {
+        throw new Exception("Response does not contain a tocken \n\n $jsonResult");
+      }
       break;
     case 302:
     case 401:
       throw Exception("Falsche Anmeldedaten");
     default:
-      throw Exception("${result.statusCode}: ${result.reasonPhrase}");
+      throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
   }
 }
 
@@ -97,15 +99,11 @@ Future<bool> loadCredentials() async {
 }
 
 Future<TrackerState> loadTrackerState() async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   File tsf = (await m.downloadFile("${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken")).file;
   return TrackerState.fromJson(jsonDecode(tsf.readAsStringSync()));
 }
 
 Future<void> setTrackerState(TrackerState state) async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   Map<String, String> body = <String, String>{
     "auth_token": authToken,
     "timer_state[uuid]": state.uuid,
@@ -121,13 +119,13 @@ Future<void> setTrackerState(TrackerState state) async {
     "timer_state[unbillable]": state.unbillable,
   };
   if (state.project != null) {
-    body.addAll({
+    body.addAll(<String, String>{
       "timer_state[project][id]": state.project.id,
       "timer_state[project][name]": state.project.name,
       "timer_state[project][customer]": state.project.customer
     });
   } else {
-    body.addAll({
+    body.addAll(const <String, String>{
       "timer_state[project]": "",
     });
   }
@@ -141,13 +139,11 @@ Future<void> setTrackerState(TrackerState state) async {
     Map<String, dynamic> apiResponse = jsonDecode(result.body);
     if (apiResponse["success"] != "true") throw Exception();
   } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
   }
 }
 
 Future<void> postTrackedTime(TrackerState state) async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   http.Response result = await http.post(
     "${baseUrl}tracker/time_entries.json",
     headers: headers,
@@ -168,13 +164,11 @@ Future<void> postTrackedTime(TrackerState state) async {
     Map<String, dynamic> apiResponse = jsonDecode(result.body);
     if (apiResponse["success"] != "true") throw Exception();
   } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
   }
 }
 
 Future<List<Company>> loadCustomers() async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   File cf = await m.getSingleFile("${baseUrl}contact/companies.json?auth_token=$authToken");
   return (jsonDecode(cf.readAsStringSync()) as List)
       .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
@@ -182,8 +176,6 @@ Future<List<Company>> loadCustomers() async {
 }
 
 Future<List<Project>> loadProjects({String searchPattern}) async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   String url = "${baseUrl}projects.json?auth_token=$authToken";
   if (searchPattern != null) url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
   File pf = await m.getSingleFile(url);
@@ -193,15 +185,11 @@ Future<List<Project>> loadProjects({String searchPattern}) async {
 }
 
 Future<Project> loadProject(int id) async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   File pf = await m.getSingleFile("${baseUrl}projects/$id.json?auth_token=$authToken");
   return Project.fromJson(jsonDecode(pf.readAsStringSync()));
 }
 
 Future<List<Task>> loadTasks() async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   File tf = await m.getSingleFile("${baseUrl}tracker/tasks.json?auth_token=$authToken");
   return (jsonDecode(tf.readAsStringSync()) as List)
       .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
@@ -209,8 +197,6 @@ Future<List<Task>> loadTasks() async {
 }
 
 Future<String> uploadDocument(File document) async {
-  if (baseUrl == null && baseUrl.isNotEmpty && authToken == null && authToken.isNotEmpty)
-    throw Exception("Not logged in");
   http.MultipartRequest request = http.MultipartRequest("POST", Uri.parse("${baseUrl}documents"));
   request.fields["auth_token"] = authToken;
   request.headers.addAll(headers);
@@ -224,7 +210,7 @@ Future<String> uploadDocument(File document) async {
   );
   http.StreamedResponse result = await request.send();
   if (result.statusCode != 201) {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}");
+    throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${await result.stream.bytesToString()}");
   }
   return result.headers["location"];
 }
@@ -244,7 +230,7 @@ Future<Map<String, String>> readCredsFromLocalStore() async {
   String username = await storage.read(key: 'username');
   String password = await storage.read(key: 'token');
 
-  return {'username': username, 'token': password, 'company': company};
+  return <String, String>{'username': username, 'token': password, 'company': company};
 }
 
 void deleteCredsFromLocalStore() {
