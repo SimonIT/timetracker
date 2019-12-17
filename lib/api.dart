@@ -112,17 +112,21 @@ Future<void> setTrackerState(TrackerState state) async {
     "timer_state[started_at]": state.started_at,
     "timer_state[stopped_at]": state.stopped_at,
     "timer_state[ended_at]": state.ended_at,
-    "timer_state[paused_duration]": state.paused_duration,
+    "timer_state[paused_duration]": state.paused_duration ?? "0",
     "timer_state[entry_date]": state.entry_date,
     "timer_state[comment]": state.comment,
     "timer_state[manual_time_change]": state.manual_time_change,
-    "timer_state[unbillable]": state.unbillable,
   };
+  if (state.unbillable != null) {
+    body.addAll({
+      "timer_state[unbillable]": state.unbillable,
+    });
+  }
   if (state.project != null) {
     body.addAll(<String, String>{
       "timer_state[project][id]": state.project.id,
       "timer_state[project][name]": state.project.name,
-      "timer_state[project][customer]": state.project.customer
+      "timer_state[project][customer]": state.project.customer,
     });
   } else {
     body.addAll(const <String, String>{

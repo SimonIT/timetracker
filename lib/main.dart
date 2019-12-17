@@ -216,7 +216,7 @@ class _TimeTrackerState extends State<TimeTracker> {
       showCupertinoDialog(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
-          title: title ?? const Text("Ein Fehler ist aufgetreten"),
+          title: Text(title ?? "Ein Fehler ist aufgetreten"),
           content: Text(e.toString()),
           actions: [
             CupertinoDialogAction(
