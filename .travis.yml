@@ -27,19 +27,18 @@ matrix:
       before_deploy:
         - ./flutter/bin/flutter -v build apk
     - os: osx
+      osx_image: xcode11.3
       language: generic
       install:
-        - pip install six
-        - brew update
-        - brew install --HEAD usbmuxd
-        - brew link usbmuxd
-        - brew install --HEAD libimobiledevice
-        - brew install ideviceinstaller ios-deploy
+        - sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+        - sudo xcodebuild -runFirstLaunch
+        - sudo xcodebuild -license
         - git clone https://github.com/flutter/flutter.git -b stable
 
       before_deploy:
         - ./flutter/bin/flutter -v build ios --no-codesign
-
+before_script:
+  - ./flutter/bin/flutter precache
 script:
   - ./flutter/bin/flutter test
 
