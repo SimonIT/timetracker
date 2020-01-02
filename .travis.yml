@@ -32,7 +32,7 @@ matrix:
       install:
         - sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
         - sudo xcodebuild -runFirstLaunch
-        - sudo xcodebuild -license
+        - sudo xcodebuild -license accept
         - git clone https://github.com/flutter/flutter.git -b stable
 
       before_deploy:
