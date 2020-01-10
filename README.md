@@ -1,6 +1,6 @@
 # TimeTracker
 
-<img src="assets/images/icon_android.png" width="65" align="left">
+<img src="assets/images/icon_splash.png" width="65" align="left">
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/SimonIT/timetracker)
 [![Build Status](https://travis-ci.com/SimonIT/timetracker.svg?branch=master)](https://travis-ci.com/SimonIT/timetracker)

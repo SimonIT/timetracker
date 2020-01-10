@@ -35,6 +35,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.7.3
+  flutter_native_splash: ^0.1.9
   build_runner: ^1.7.1
   json_serializable: ^2.3.0
 
@@ -45,3 +46,7 @@ flutter_icons:
   image_path_ios: "assets/images/icon_ios.png"
   adaptive_icon_background: "#B9D5DE"
   adaptive_icon_foreground: "assets/images/icon_android.png"
+
+flutter_native_splash:
+  image: "assets/images/icon_splash.png"
+  color: "#B9D5DE"
