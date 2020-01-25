@@ -324,9 +324,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                           placeholder: "Kunde/Projekt",
                           autocorrect: false,
                           maxLines: 1,
-                          style: state.project != null
-                              ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
-                              : null,
+                          style: DefaultTextStyle.of(context)
+                              .style
+                              .copyWith(color: CupertinoTheme.of(context).primaryContrastingColor),
                         ),
                         hideOnEmpty: true,
                         noItemsFoundBuilder: (BuildContext context) => Container(),
@@ -384,9 +384,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                               title: setTrackerError,
                             );
                           },
-                          style: state.project == null
-                              ? TextStyle(color: CupertinoTheme.of(context).primaryContrastingColor)
-                              : null,
+                          style: DefaultTextStyle.of(context)
+                              .style
+                              .copyWith(color: CupertinoTheme.of(context).primaryContrastingColor),
                         ),
                         hideOnEmpty: true,
                         noItemsFoundBuilder: (BuildContext context) => Container(),
