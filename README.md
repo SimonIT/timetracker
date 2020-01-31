@@ -4,6 +4,7 @@
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/SimonIT/timetracker)
 [![Build Status](https://travis-ci.com/SimonIT/timetracker.svg?branch=master)](https://travis-ci.com/SimonIT/timetracker)
+![GitHub](https://img.shields.io/github/license/SimonIT/timetracker)
 
 Papierkram.de - TimeTracker as flutter app
 
