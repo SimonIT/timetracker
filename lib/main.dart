@@ -774,8 +774,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                 List<Widget> cs = [
                   CSHeader('Ihre Papierkram.de Zugangsdaten'),
                   CSControl(
-                    "Firmen ID",
-                    Text(
+                    nameWidget: Text("Firmen ID"),
+                    contentWidget: Text(
                       api.authCompany,
                       style: const TextStyle(
                         color: CupertinoColors.black,
@@ -783,8 +783,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                   ),
                   CSControl(
-                    "Nutzer",
-                    Text(
+                    nameWidget: Text("Nutzer"),
+                    contentWidget: Text(
                       api.authUsername,
                       style: const TextStyle(
                         color: CupertinoColors.black,
@@ -802,8 +802,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                   }),
                   CSHeader("Einstellungen"),
                   CSControl(
-                    "Pausen hervorheben",
-                    CupertinoSwitch(
+                    nameWidget: Text("Pausen hervorheben"),
+                    contentWidget: CupertinoSwitch(
                       onChanged: (bool changed) => setState(() {
                         highlightBreaks = changed;
                         prefs.setBool("highlightBreaks", changed);
@@ -812,8 +812,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                   ),
                   CSControl(
-                    "Aufgaben vorschlagen",
-                    CupertinoSwitch(
+                    nameWidget: Text("Aufgaben vorschlagen"),
+                    contentWidget: CupertinoSwitch(
                       onChanged: (bool changed) => setState(() {
                         taskSuggestions = changed;
                         prefs.setBool("taskSuggestions", changed);
@@ -827,8 +827,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                   cs.add(CSHeader("Kaufe mir ein ..."));
                   for (ProductDetails product in products) {
                     cs.add(CSControl(
-                      product.title.replaceAll(iapAppNameFilter, ""),
-                      CupertinoButton(
+                      nameWidget: Text(product.title.replaceAll(iapAppNameFilter, "")),
+                      contentWidget: CupertinoButton(
                         child: Row(
                           children: <Widget>[
                             Padding(
@@ -849,12 +849,12 @@ class _TimeTrackerState extends State<TimeTracker> {
 
                 cs.addAll([
                   CSHeader("Weitere Infos"),
-                  CSLink("Im Store Anzeigen", () => AppReview.storeListing),
-                  CSLink("Quelltext", () => launch("https://github.com/SimonIT/timetracker")),
-                  CSLink("Kontakt", () => launch("mailto:simonit.orig@gmail.com")),
+                  CSLink(title: "Im Store Anzeigen", onPressed: () => AppReview.storeListing),
+                  CSLink(title: "Quelltext", onPressed: () => launch("https://github.com/SimonIT/timetracker")),
+                  CSLink(title: "Kontakt", onPressed: () => launch("mailto:simonit.orig@gmail.com")),
                   CSLink(
-                    "Lizenzen",
-                    () => Navigator.of(context, rootNavigator: true).push(
+                    title: "Lizenzen",
+                    onPressed: () => Navigator.of(context, rootNavigator: true).push(
                       CupertinoPageRoute(builder: (BuildContext context) => LicensePage()),
                     ),
                   ),

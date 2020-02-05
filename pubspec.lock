@@ -14,7 +14,7 @@ packages:
       name: app_review
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.1.0+1"
   archive:
     dependency: transitive
     description:
@@ -205,19 +205,17 @@ packages:
   flutter_cupertino_settings:
     dependency: "direct main"
     description:
-      path: "."
-      ref: secret
-      resolved-ref: f3ad342c6cac3a91fea3bf6c8ef5a5fa707e5d7c
-      url: "https://github.com/SimonIT/flutter_cupertino_settings.git"
-    source: git
-    version: "0.2.0"
+      name: flutter_cupertino_settings
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   flutter_easyrefresh:
     dependency: "direct main"
     description:
       name: flutter_easyrefresh
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.8"
+    version: "2.0.9"
   flutter_keyboard_visibility:
     dependency: transitive
     description:
@@ -311,7 +309,7 @@ packages:
       name: http_multi_server
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   http_parser:
     dependency: transitive
     description:
@@ -458,7 +456,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.1"
+    version: "1.6.0"
   pedantic:
     dependency: transitive
     description:
