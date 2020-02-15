@@ -527,7 +527,6 @@ class _TimeTrackerState extends State<TimeTracker> {
                                             return _buildBottomPicker(
                                               CupertinoDatePicker(
                                                 mode: CupertinoDatePickerMode.time,
-                                                maximumDate: state.getEndedAt(),
                                                 initialDateTime: state.getStartedAt(),
                                                 use24hFormat: true,
                                                 onDateTimeChanged: (DateTime newDateTime) {
@@ -566,7 +565,6 @@ class _TimeTrackerState extends State<TimeTracker> {
                                             return _buildBottomPicker(
                                               CupertinoDatePicker(
                                                 mode: CupertinoDatePickerMode.time,
-                                                minimumDate: state.getStartedAt(),
                                                 initialDateTime: state.getEndedAt(),
                                                 use24hFormat: true,
                                                 onDateTimeChanged: (DateTime newDateTime) {
