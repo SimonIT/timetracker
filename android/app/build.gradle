@@ -41,7 +41,7 @@ android {
         applicationId "com.papierkram.timetracker"
         minSdkVersion 18
         targetSdkVersion 29
-        versionCode 13
+        versionCode 14
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
