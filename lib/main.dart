@@ -57,7 +57,10 @@ final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 final DateFormat dayMonth = DateFormat("dd.MM.");
 final RegExp iapAppNameFilter = RegExp(r'( \(.+?\))$', caseSensitive: false);
 
-void main() => runApp(App());
+void main() {
+  InAppPurchaseConnection.enablePendingPurchases();
+  runApp(App());
+}
 
 class App extends StatelessWidget {
   @override
