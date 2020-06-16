@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:timetracker/data.dart';
+
+import 'data.dart';
 
 String authCompany;
 String authUsername;
@@ -31,7 +32,8 @@ final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 BaseCacheManager m = MyCacheManager();
 
-Future<void> saveSettingsCheckToken(String company, String username, String password) async {
+Future<void> saveSettingsCheckToken(
+    String company, String username, String password) async {
   http.Response result = await http.post(
     'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth',
     body: <String, String>{
@@ -44,17 +46,23 @@ Future<void> saveSettingsCheckToken(String company, String username, String pass
     case 200:
       Map jsonResult = jsonDecode(result.body);
       if ((jsonResult["token"] as String).isNotEmpty) {
-        writeCredsToLocalStore(company, username, jsonResult["token"] as String);
+        writeCredsToLocalStore(
+          company,
+          username,
+          jsonResult["token"] as String,
+        );
         authenticate();
       } else {
-        throw new Exception("Response does not contain a tocken \n\n $jsonResult");
+        throw new Exception(
+            "Response does not contain a tocken \n\n $jsonResult");
       }
       break;
     case 302:
     case 401:
       throw Exception("Falsche Anmeldedaten");
     default:
-      throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
+      throw Exception(
+          "${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
   }
 }
 
@@ -68,7 +76,8 @@ Future<void> authenticate() async {
     if (result.statusCode == 200) {
       Map jsonResult = jsonDecode(result.body);
       if ((jsonResult["token"] as String).isEmpty) {
-        throw Exception("Sorry, aber ich konnte mich nicht verbinden. Bitte prüfe Deine Zugangsdaten... (1)");
+        throw Exception(
+            "Sorry, aber ich konnte mich nicht verbinden. Bitte prüfe Deine Zugangsdaten... (1)");
       } else {
         authToken = jsonResult["token"] as String;
         userName = jsonResult["user_name"] as String;
@@ -76,7 +85,8 @@ Future<void> authenticate() async {
         authRealtimeToken = jsonResult["realtime_token"] as String;
       }
     } else {
-      throw Exception("Sorry, aber ich konnte mich nicht verbinden. Bitte prüfe Deine Zugangsdaten... (2)");
+      throw Exception(
+          "Sorry, aber ich konnte mich nicht verbinden. Bitte prüfe Deine Zugangsdaten... (2)");
     }
   }
 }
@@ -99,7 +109,9 @@ Future<bool> loadCredentials() async {
 }
 
 Future<TrackerState> loadTrackerState() async {
-  File tsf = (await m.downloadFile("${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken")).file;
+  File tsf = (await m.downloadFile(
+          "${baseUrl}tracker/time_entries/timer_state.json?auth_token=$authToken"))
+      .file;
   return TrackerState.fromJson(jsonDecode(tsf.readAsStringSync()));
 }
 
@@ -143,7 +155,8 @@ Future<void> setTrackerState(TrackerState state) async {
     Map<String, dynamic> apiResponse = jsonDecode(result.body);
     if (apiResponse["success"] != "true") throw Exception();
   } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
+    throw Exception(
+        "${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
   }
 }
 
@@ -157,7 +170,10 @@ Future<void> postTrackedTime(TrackerState state) async {
       "tracker_time_entry[ended_at]": apiFormat.format(state.getEndedAt()),
       "tracker_time_entry[comments]": state.comment,
       "tracker_time_entry[duration]":
-          (state.getEndedAt().difference(state.getStartedAt()) - state.getPausedDuration()).inMinutes.toString(),
+          (state.getEndedAt().difference(state.getStartedAt()) -
+                  state.getPausedDuration())
+              .inMinutes
+              .toString(),
       "tracker_time_entry[unbillable]": state.unbillable,
       "project_id": state.project.id,
       "task_name": state.task_name,
@@ -168,40 +184,48 @@ Future<void> postTrackedTime(TrackerState state) async {
     Map<String, dynamic> apiResponse = jsonDecode(result.body);
     if (apiResponse["success"] != "true") throw Exception();
   } else {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
+    throw Exception(
+        "${result.statusCode}: ${result.reasonPhrase}\n\n${result.body}");
   }
 }
 
 Future<List<Company>> loadCustomers() async {
-  File cf = await m.getSingleFile("${baseUrl}contact/companies.json?auth_token=$authToken");
+  File cf = await m
+      .getSingleFile("${baseUrl}contact/companies.json?auth_token=$authToken");
   return (jsonDecode(cf.readAsStringSync()) as List)
-      .map((e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
+      .map(
+          (e) => e == null ? null : Company.fromJson(e as Map<String, dynamic>))
       .toList();
 }
 
 Future<List<Project>> loadProjects({String searchPattern}) async {
   String url = "${baseUrl}projects.json?auth_token=$authToken";
-  if (searchPattern != null) url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
+  if (searchPattern != null)
+    url = "$url&auto_complete=${Uri.encodeQueryComponent(searchPattern)}";
   File pf = await m.getSingleFile(url);
   return (jsonDecode(pf.readAsStringSync()) as List)
-      .map((e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
+      .map(
+          (e) => e == null ? null : Project.fromJson(e as Map<String, dynamic>))
       .toList();
 }
 
 Future<Project> loadProject(int id) async {
-  File pf = await m.getSingleFile("${baseUrl}projects/$id.json?auth_token=$authToken");
+  File pf = await m
+      .getSingleFile("${baseUrl}projects/$id.json?auth_token=$authToken");
   return Project.fromJson(jsonDecode(pf.readAsStringSync()));
 }
 
 Future<List<Task>> loadTasks() async {
-  File tf = await m.getSingleFile("${baseUrl}tracker/tasks.json?auth_token=$authToken");
+  File tf = await m
+      .getSingleFile("${baseUrl}tracker/tasks.json?auth_token=$authToken");
   return (jsonDecode(tf.readAsStringSync()) as List)
       .map((e) => e == null ? null : Task.fromJson(e as Map<String, dynamic>))
       .toList();
 }
 
 Future<String> uploadDocument(File document) async {
-  http.MultipartRequest request = http.MultipartRequest("POST", Uri.parse("${baseUrl}documents"));
+  http.MultipartRequest request =
+      http.MultipartRequest("POST", Uri.parse("${baseUrl}documents"));
   request.fields["auth_token"] = authToken;
   request.headers.addAll(headers);
   request.files.add(
@@ -214,7 +238,8 @@ Future<String> uploadDocument(File document) async {
   );
   http.StreamedResponse result = await request.send();
   if (result.statusCode != 201) {
-    throw Exception("${result.statusCode}: ${result.reasonPhrase}\n\n${await result.stream.bytesToString()}");
+    throw Exception(
+        "${result.statusCode}: ${result.reasonPhrase}\n\n${await result.stream.bytesToString()}");
   }
   return result.headers["location"];
 }
@@ -234,7 +259,11 @@ Future<Map<String, String>> readCredsFromLocalStore() async {
   String username = await storage.read(key: 'username');
   String password = await storage.read(key: 'token');
 
-  return <String, String>{'username': username, 'token': password, 'company': company};
+  return <String, String>{
+    'username': username,
+    'token': password,
+    'company': company,
+  };
 }
 
 void deleteCredsFromLocalStore() {
@@ -270,7 +299,9 @@ class MyCacheManager extends BaseCacheManager {
       }
       return cacheFile.file;
     }
-    FileInfo download = await webHelper.downloadFile(url, authHeaders: headers);
+    FileInfo download = await webHelper
+        .downloadFile(url, authHeaders: headers)
+        .firstWhere((r) => r is FileInfo);
     return download.file;
   }
 }
