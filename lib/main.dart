@@ -17,12 +17,12 @@ import 'package:sentry/sentry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
 import 'package:timetracker/data.dart';
+import 'package:timetracker/sentry.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'helpers.dart';
 
-final SentryClient sentry =
-    SentryClient(dsn: 'https://c9029712547649df9379dd4f6df680bd@o407859.ingest.sentry.io/5281403');
+SentryClient sentry;
 
 const Color green = Color.fromRGBO(91, 182, 91, 1);
 const Color red = Color.fromRGBO(218, 78, 73, 1);
@@ -61,8 +61,11 @@ final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 final DateFormat dayMonth = DateFormat("dd.MM.");
 final RegExp iapAppNameFilter = RegExp(r'( \(.+?\))$', caseSensitive: false);
 
-void main() {
-  InAppPurchaseConnection.enablePendingPurchases();
+void main() async {
+  sentry = SentryClient(
+    dsn: 'https://c9029712547649df9379dd4f6df680bd@o407859.ingest.sentry.io/5281403',
+    environmentAttributes: await getSentryEnvironmentAttributes(repository: "timetracker"),
+  );
 
   FlutterError.onError = (details, {bool forceReport = false}) {
     try {
@@ -76,6 +79,8 @@ void main() {
       FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
     }
   };
+
+  InAppPurchaseConnection.enablePendingPurchases();
 
   runZonedGuarded(
     () => runApp(App()),
