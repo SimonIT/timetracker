@@ -779,7 +779,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                                   } catch (e) {
                                     sentry.captureException(
                                       exception: e,
-                                      stackTrace: e is Error ? e.stackTrace : null,
+                                      stackTrace:
+                                          e is Error ? e.stackTrace : null,
                                     );
                                     showCupertinoDialog(
                                       context: context,
@@ -1533,12 +1534,12 @@ class LicensePage extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Column(
                         children: <Widget>[
-                          Center(
-                            child: Text(
-                              s.data[index].packages.join(", "),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                          Text(
+                            s.data[index].packages.join(", "),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                           Column(
                             children: paragraphs
