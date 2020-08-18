@@ -3,7 +3,7 @@ description: Papierkram.de - TimeTracker as flutter app
 
 publish_to: 'none'
 
-version: 1.5.5+2
+version: 1.5.5+5
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
