@@ -21,7 +21,7 @@ packages:
       name: app_review
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.2"
+    version: "2.0.1"
   archive:
     dependency: transitive
     description:
@@ -325,7 +325,7 @@ packages:
       name: flutter_typeahead
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.7"
+    version: "1.8.8"
   flutter_web_plugins:
     dependency: transitive
     description: flutter

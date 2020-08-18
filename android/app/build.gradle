@@ -41,7 +41,7 @@ android {
         applicationId "com.papierkram.timetracker"
         minSdkVersion 18
         targetSdkVersion 30
-        versionCode 15
+        versionCode 16
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -59,7 +59,6 @@ android {
             signingConfig signingConfigs.release
 
             minifyEnabled true
-            useProguard true
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
