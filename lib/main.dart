@@ -872,48 +872,47 @@ class _TimeTrackerState extends State<TimeTracker> {
                               textAlign: TextAlign.center,
                             ),
                             onPressed: () {
-                              FilePicker.getMultiFile()
-                                  .then((List<File> files) {
-                                if (files != null) {
-                                  for (File file in files) {
-                                    catchError(
-                                      api
-                                          .uploadDocument(file)
-                                          .then((String link) {
-                                        showCupertinoDialog(
-                                          context: context,
-                                          builder: (BuildContext context) =>
-                                              CupertinoAlertDialog(
-                                            title: const Text(
-                                                "Das Dokument wurde erfolgreich hochgeladen"),
-                                            actions: [
-                                              CupertinoDialogAction(
-                                                child: const Text("Öffnen"),
-                                                onPressed: () =>
-                                                    OpenFile.open(file.path),
-                                              ),
-                                              CupertinoDialogAction(
-                                                child: const Text(
-                                                    "Öffne im Browser"),
-                                                onPressed: () => launch(link),
-                                              ),
-                                              CupertinoDialogAction(
-                                                isDestructiveAction: true,
-                                                isDefaultAction: true,
-                                                child: const Text("Schließen"),
-                                                onPressed: () => Navigator.of(
-                                                  context,
-                                                  rootNavigator: true,
-                                                ).pop("Cancel"),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
-                                      title:
-                                          "Ein Fehler ist beim Hochladen aufgetreten",
-                                    );
-                                  }
+                              FilePicker.platform.pickFiles()
+                                  .then((FilePickerResult result) {
+                                if (result != null) {
+                                  File file = File(result.files.single.path);
+                                  catchError(
+                                    api
+                                        .uploadDocument(file)
+                                        .then((String link) {
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            CupertinoAlertDialog(
+                                          title: const Text(
+                                              "Das Dokument wurde erfolgreich hochgeladen"),
+                                          actions: [
+                                            CupertinoDialogAction(
+                                              child: const Text("Öffnen"),
+                                              onPressed: () =>
+                                                  OpenFile.open(file.path),
+                                            ),
+                                            CupertinoDialogAction(
+                                              child: const Text(
+                                                  "Öffne im Browser"),
+                                              onPressed: () => launch(link),
+                                            ),
+                                            CupertinoDialogAction(
+                                              isDestructiveAction: true,
+                                              isDefaultAction: true,
+                                              child: const Text("Schließen"),
+                                              onPressed: () => Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop("Cancel"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                    title:
+                                        "Ein Fehler ist beim Hochladen aufgetreten",
+                                  );
                                 }
                               });
                             },

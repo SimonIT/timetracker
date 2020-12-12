@@ -6,7 +6,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 
 import 'data.dart';
 
@@ -30,7 +29,7 @@ const Map<String, String> headers = <String, String>{
 };
 final DateFormat apiFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
-BaseCacheManager m = MyCacheManager();
+BaseCacheManager m = MyCacheManager.instance;
 
 Future<void> saveSettingsCheckToken(
     String company, String username, String password) async {
@@ -271,37 +270,14 @@ void deleteCredsFromLocalStore() {
   storage.deleteAll();
 }
 
-class MyCacheManager extends BaseCacheManager {
-  static const key = "libTimeTrackerData";
-
-  static MyCacheManager _instance;
-
-  factory MyCacheManager() {
-    if (_instance == null) {
-      _instance = new MyCacheManager._();
-    }
-    return _instance;
-  }
-
-  MyCacheManager._() : super(key);
-
-  Future<String> getFilePath() async {
-    var directory = await getTemporaryDirectory();
-    return path.join(directory.path, key);
-  }
-
-  @override
-  Future<File> getSingleFile(String url, {Map<String, String> headers}) async {
-    FileInfo cacheFile = await getFileFromCache(url);
-    if (cacheFile != null) {
-      if (cacheFile.validTill.isBefore(DateTime.now())) {
-        webHelper.downloadFile(url, authHeaders: headers);
-      }
-      return cacheFile.file;
-    }
-    FileInfo download = await webHelper
-        .downloadFile(url, authHeaders: headers)
-        .firstWhere((r) => r is FileInfo);
-    return download.file;
-  }
+class MyCacheManager {
+  static const key = 'libTimeTrackerData';
+  static CacheManager instance = CacheManager(
+    Config(
+      key,
+      stalePeriod: const Duration(days: 7),
+      repo: JsonCacheInfoRepository(databaseName: key),
+      fileService: HttpFileService(),
+    ),
+  );
 }
