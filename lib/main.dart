@@ -14,10 +14,10 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:sentry/sentry.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
 import 'package:timetracker/data.dart';
-import 'package:timetracker/sentry.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'helpers.dart';
@@ -62,44 +62,14 @@ final DateFormat dayMonthYear = DateFormat("dd.MM.yyyy");
 final DateFormat dayMonth = DateFormat("dd.MM.");
 final RegExp iapAppNameFilter = RegExp(r'( \(.+?\))$', caseSensitive: false);
 
-void main() async {
-  sentry = SentryClient(
-    dsn:
-        'https://c9029712547649df9379dd4f6df680bd@o407859.ingest.sentry.io/5281403',
-    environmentAttributes: await getSentryEnvironmentAttributes(
-      repository: "timetracker",
-    ),
-  );
-
-  FlutterError.onError = (details, {bool forceReport = false}) {
-    try {
-      sentry.captureException(
-        exception: details.exception,
-        stackTrace: details.stack,
-      );
-    } catch (e) {
-      print('Sending report to sentry.io failed: $e');
-    } finally {
-      FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
-    }
-  };
-
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   InAppPurchaseConnection.enablePendingPurchases();
-
-  runZonedGuarded(
-    () => runApp(App()),
-    (error, stackTrace) {
-      try {
-        sentry.captureException(
-          exception: error,
-          stackTrace: stackTrace,
-        );
-        print('Error sent to sentry.io: $error');
-      } catch (e) {
-        print('Sending report to sentry.io failed: $e');
-        print('Original error: $error');
-      }
+  await SentryFlutter.init(
+        (options) {
+      options.dsn = 'https://c9029712547649df9379dd4f6df680bd@o407859.ingest.sentry.io/5281403';
     },
+    appRunner: () => runApp(App()),
   );
 }
 
@@ -271,8 +241,8 @@ class _TimeTrackerState extends State<TimeTracker> {
 
   Future<dynamic> catchError(Future<dynamic> future, {String title}) {
     return future.catchError((Object e) {
-      sentry.captureException(
-        exception: e,
+      Sentry.captureException(
+        e,
         stackTrace: e is Error ? e.stackTrace : null,
       );
       showCupertinoDialog(
@@ -777,8 +747,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                                   try {
                                     await api.postTrackedTime(state);
                                   } catch (e) {
-                                    sentry.captureException(
-                                      exception: e,
+                                    await Sentry.captureException(
+                                      e,
                                       stackTrace:
                                           e is Error ? e.stackTrace : null,
                                     );
@@ -1561,8 +1531,8 @@ class LicensePage extends StatelessWidget {
                       ),
                     );
                   } catch (e) {
-                    sentry.captureException(
-                      exception: e,
+                    Sentry.captureException(
+                      e,
                       stackTrace: e is Error ? e.stackTrace : null,
                     );
                     return Container();
