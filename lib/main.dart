@@ -22,8 +22,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'helpers.dart';
 
-SentryClient sentry;
-
 const Color green = Color.fromRGBO(91, 182, 91, 1);
 const Color red = Color.fromRGBO(218, 78, 73, 1);
 const Color deactivatedGray = Color.fromRGBO(209, 208, 203, 1);
@@ -281,19 +279,19 @@ class _TimeTrackerState extends State<TimeTracker> {
                 matchTextDirection: true,
               ),
             ),
-            title: const Text('Tracken'),
+            label: 'Tracken',
           ),
           const BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.pen),
-            title: const Text('Zeiterfassung'),
+            label: 'Zeiterfassung',
           ),
           const BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.clock),
-            title: const Text('Buchungen'),
+            label: 'Buchungen',
           ),
           const BottomNavigationBarItem(
             icon: const Icon(CupertinoIcons.settings),
-            title: const Text('Zugangsdaten'),
+            label: 'Zugangsdaten',
           ),
         ],
       ),
@@ -1418,7 +1416,10 @@ class _CredentialsPageState extends State<CredentialsPage> {
                     setState(() => showLoading = true);
                     try {
                       await api.saveSettingsCheckToken(
-                          _company.text, _user.text, _password.text);
+                        _company.text,
+                        _user.text,
+                        _password.text,
+                      );
                       api.loadTrackerState().then((TrackerState state) {
                         setState(() => showLoading = false);
                         Navigator.pushReplacement(
