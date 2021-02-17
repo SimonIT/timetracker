@@ -64,8 +64,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   InAppPurchaseConnection.enablePendingPurchases();
   await SentryFlutter.init(
-        (options) {
-      options.dsn = 'https://c9029712547649df9379dd4f6df680bd@o407859.ingest.sentry.io/5281403';
+    (options) {
+      options.dsn =
+          'https://c9029712547649df9379dd4f6df680bd@o407859.ingest.sentry.io/5281403';
     },
     appRunner: () => runApp(App()),
   );
@@ -315,9 +316,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               children: <Widget>[
                                 Text(state.task_name),
                                 Text(
-                                  state.project is StateProject
-                                      ? state.project.title
-                                      : "",
+                                  state.project?.title ?? "",
                                   textAlign: TextAlign.end,
                                 ),
                               ],
@@ -840,7 +839,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                               textAlign: TextAlign.center,
                             ),
                             onPressed: () {
-                              FilePicker.platform.pickFiles()
+                              FilePicker.platform
+                                  .pickFiles()
                                   .then((FilePickerResult result) {
                                 if (result != null) {
                                   File file = File(result.files.single.path);
