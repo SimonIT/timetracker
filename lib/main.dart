@@ -272,14 +272,7 @@ class _TimeTrackerState extends State<TimeTracker> {
       tabBar: CupertinoTabBar(
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(
-            icon: const Icon(
-              const IconData(
-                0xF2FD,
-                fontFamily: CupertinoIcons.iconFont,
-                fontPackage: CupertinoIcons.iconFontPackage,
-                matchTextDirection: true,
-              ),
-            ),
+            icon: const Icon(CupertinoIcons.timer),
             label: 'Tracken',
           ),
           const BottomNavigationBarItem(
@@ -523,13 +516,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               Row(
                                 children: <Widget>[
                                   const Icon(
-                                    const IconData(
-                                      0xF2D1,
-                                      fontFamily: CupertinoIcons.iconFont,
-                                      fontPackage:
-                                          CupertinoIcons.iconFontPackage,
-                                      matchTextDirection: true,
-                                    ),
+                                    CupertinoIcons.calendar,
                                     color: CupertinoColors.white,
                                   ),
                                   GestureDetector(
@@ -584,7 +571,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               Row(
                                 children: <Widget>[
                                   const Icon(
-                                    CupertinoIcons.time_solid,
+                                    CupertinoIcons.time,
                                     color: CupertinoColors.white,
                                   ),
                                   GestureDetector(

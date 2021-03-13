@@ -34,7 +34,8 @@ BaseCacheManager m = MyCacheManager.instance;
 Future<void> saveSettingsCheckToken(
     String company, String username, String password) async {
   http.Response result = await http.post(
-    'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth',
+    Uri.parse(
+        'https://${Uri.encodeComponent(company)}$apiDomain${apiPath}auth'),
     body: <String, String>{
       "email": username,
       "password": password,
@@ -68,7 +69,7 @@ Future<void> saveSettingsCheckToken(
 Future<void> authenticate() async {
   if (await loadCredentials()) {
     http.Response result = await http.post(
-      "${baseUrl}auth",
+      Uri.parse("${baseUrl}auth"),
       body: <String, String>{"auth_token": authToken},
       headers: headers,
     );
@@ -146,7 +147,7 @@ Future<void> setTrackerState(TrackerState state) async {
   }
 
   http.Response result = await http.post(
-    "${baseUrl}tracker/time_entries/timer_state.json",
+    Uri.parse("${baseUrl}tracker/time_entries/timer_state.json"),
     headers: headers,
     body: body,
   );
@@ -161,7 +162,7 @@ Future<void> setTrackerState(TrackerState state) async {
 
 Future<void> postTrackedTime(TrackerState state) async {
   http.Response result = await http.post(
-    "${baseUrl}tracker/time_entries.json",
+    Uri.parse("${baseUrl}tracker/time_entries.json"),
     headers: headers,
     body: <String, String>{
       "auth_token": authToken,
