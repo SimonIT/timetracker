@@ -20,15 +20,12 @@ jobs:
           java-version: '12.x'
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '2.0.1'
+          channel: 'stable'
       - name: Get libs
         run: flutter pub get
       - name: Test lib
         run: flutter test
-      - name: Build debug apk
-        run: flutter build apk --debug
-      - name: Upload debug apk
-        uses: actions/upload-artifact@v2
+      - name: Analyze lib
+        uses: axel-op/dart-package-analyzer@v3
         with:
-          name: APK
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
