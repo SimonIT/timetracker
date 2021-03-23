@@ -1,5 +1,6 @@
 name: timetracker
 description: Papierkram.de - TimeTracker as flutter app
+repository: https://github.com/SimonIT/timetracker.git
 
 publish_to: 'none'
 
