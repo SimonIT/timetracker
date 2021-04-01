@@ -694,11 +694,13 @@ class _TimeTrackerState extends State<TimeTracker> {
                           CupertinoSwitch(
                             value: !state.getUnbillable(),
                             onChanged: (bool newVal) {
-                              state.setUnbillable(!newVal);
-                              catchError(
-                                api.setTrackerState(state),
-                                title: setTrackerError,
-                              );
+                              setState(() {
+                                state.setUnbillable(!newVal);
+                                catchError(
+                                  api.setTrackerState(state),
+                                  title: setTrackerError,
+                                );
+                              });
                             },
                           ),
                           Text("Abrechenbar?"),
