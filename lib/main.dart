@@ -8,12 +8,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cupertino_settings/flutter_cupertino_settings.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
-import 'package:flutter_easyrefresh/material_header.dart';
-import 'package:flutter_typeahead/cupertino_flutter_typeahead.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
-import 'package:sentry/sentry.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
@@ -62,7 +61,12 @@ final RegExp iapAppNameFilter = RegExp(r'( \(.+?\))$', caseSensitive: false);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  InAppPurchaseConnection.enablePendingPurchases();
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    // For play billing library 2.0 on Android, it is mandatory to call
+    // [enablePendingPurchases](https://developer.android.com/reference/com/android/billingclient/api/BillingClient.Builder.html#enablependingpurchases)
+    // as part of initializing the app.
+    InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
+  }
   await SentryFlutter.init(
     (options) {
       options.dsn =
@@ -104,6 +108,7 @@ class TimeTracker extends StatefulWidget {
 }
 
 class _TimeTrackerState extends State<TimeTracker> {
+  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   TrackerState state;
 
   CupertinoTabController _tabController = CupertinoTabController();
@@ -173,9 +178,9 @@ class _TimeTrackerState extends State<TimeTracker> {
   void initState() {
     super.initState();
     updateInputs();
-    InAppPurchaseConnection.instance.isAvailable().then((bool available) {
+    _inAppPurchase.isAvailable().then((bool available) {
       if (available)
-        InAppPurchaseConnection.instance.queryProductDetails({
+        _inAppPurchase.queryProductDetails({
           'developer_limonade_once',
           'developer_buns_weekly',
           'developer_cinema_monthly',
@@ -959,7 +964,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                           ],
                         ),
                         onPressed: () {
-                          InAppPurchaseConnection.instance.buyConsumable(
+                          _inAppPurchase.buyConsumable(
                             purchaseParam:
                                 PurchaseParam(productDetails: product),
                             autoConsume: true,

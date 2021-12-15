@@ -78,8 +78,7 @@ flutter {
 }
 
 sentry {
-    autoProguardConfig true
-    autoUpload true
+    autoUpload = true
 }
 
 dependencies {
