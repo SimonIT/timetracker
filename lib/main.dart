@@ -3,21 +3,20 @@ import 'dart:io';
 
 import 'package:app_review/app_review.dart';
 import 'package:duration/duration.dart';
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cupertino_settings/flutter_cupertino_settings.dart';
-import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/api.dart' as api;
 import 'package:timetracker/data.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import 'helpers.dart';
 
@@ -44,9 +43,9 @@ const BoxDecoration rowDecorationNewDay = BoxDecoration(
     ),
   ),
 );
-const BoxDecoration rowHeading = const BoxDecoration(
-  border: const Border(
-    bottom: const BorderSide(
+const BoxDecoration rowHeading = BoxDecoration(
+  border: Border(
+    bottom: BorderSide(
       width: 3,
       color: CupertinoColors.lightBackgroundGray,
     ),
@@ -61,12 +60,6 @@ final RegExp iapAppNameFilter = RegExp(r'( \(.+?\))$', caseSensitive: false);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (defaultTargetPlatform == TargetPlatform.android) {
-    // For play billing library 2.0 on Android, it is mandatory to call
-    // [enablePendingPurchases](https://developer.android.com/reference/com/android/billingclient/api/BillingClient.Builder.html#enablependingpurchases)
-    // as part of initializing the app.
-    InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
-  }
   await SentryFlutter.init(
     (options) {
       options.dsn =
@@ -79,19 +72,19 @@ Future<void> main() async {
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
+    return const CupertinoApp(
       title: 'Papierkram.de TimeTracker',
-      theme: const CupertinoThemeData(
-        primaryColor: const Color.fromRGBO(185, 213, 222, 1),
-        primaryContrastingColor: const Color.fromRGBO(0, 59, 78, 1),
-        barBackgroundColor: const Color.fromRGBO(0, 59, 78, 1),
-        textTheme: const CupertinoTextThemeData(
-          textStyle: const TextStyle(
+      theme: CupertinoThemeData(
+        primaryColor: Color.fromRGBO(185, 213, 222, 1),
+        primaryContrastingColor: Color.fromRGBO(0, 59, 78, 1),
+        barBackgroundColor: Color.fromRGBO(0, 59, 78, 1),
+        textTheme: CupertinoTextThemeData(
+          textStyle: TextStyle(
             color: CupertinoColors.white,
             fontSize: 17,
           ),
         ),
-        scaffoldBackgroundColor: const Color.fromRGBO(0, 102, 136, 1),
+        scaffoldBackgroundColor: Color.fromRGBO(0, 102, 136, 1),
       ),
       home: CredentialsPage(),
     );
@@ -101,7 +94,7 @@ class App extends StatelessWidget {
 class TimeTracker extends StatefulWidget {
   final TrackerState state;
 
-  TimeTracker({@required this.state});
+  const TimeTracker({Key key, @required this.state}) : super(key: key);
 
   @override
   _TimeTrackerState createState() => _TimeTrackerState(state: state);
@@ -111,15 +104,15 @@ class _TimeTrackerState extends State<TimeTracker> {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   TrackerState state;
 
-  CupertinoTabController _tabController = CupertinoTabController();
-  TextEditingController _project = TextEditingController();
-  TextEditingController _task = TextEditingController();
-  TextEditingController _comment = TextEditingController();
-  CupertinoSuggestionsBoxController _projectSuggestion =
+  final CupertinoTabController _tabController = CupertinoTabController();
+  final TextEditingController _project = TextEditingController();
+  final TextEditingController _task = TextEditingController();
+  final TextEditingController _comment = TextEditingController();
+  final CupertinoSuggestionsBoxController _projectSuggestion =
       CupertinoSuggestionsBoxController();
-  FocusNode _projectFocus = FocusNode();
-  FocusNode _taskFocus = FocusNode();
-  FocusNode _commentFocus = FocusNode();
+  final FocusNode _projectFocus = FocusNode();
+  final FocusNode _taskFocus = FocusNode();
+  final FocusNode _commentFocus = FocusNode();
 
   Timer _t;
   bool highlightBreaks = false;
@@ -130,8 +123,8 @@ class _TimeTrackerState extends State<TimeTracker> {
   _TimeTrackerState({@required this.state}) {
     SharedPreferences.getInstance().then((SharedPreferences prefs) {
       this.prefs = prefs;
-      this.highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
-      this.taskSuggestions = prefs.getBool("taskSuggestions") ?? false;
+      highlightBreaks = prefs.getBool("highlightBreaks") ?? false;
+      taskSuggestions = prefs.getBool("taskSuggestions") ?? false;
       int appLaunches = prefs.getInt("appLaunches") ?? 0;
       if (appLaunches > 4) {
         Future.delayed(
@@ -179,15 +172,16 @@ class _TimeTrackerState extends State<TimeTracker> {
     super.initState();
     updateInputs();
     _inAppPurchase.isAvailable().then((bool available) {
-      if (available)
+      if (available) {
         _inAppPurchase.queryProductDetails({
           'developer_limonade_once',
           'developer_buns_weekly',
           'developer_cinema_monthly',
         }).then((ProductDetailsResponse response) =>
-            setState(() => this.products = response.productDetails));
+            setState(() => products = response.productDetails));
+      }
     });
-    this._t = Timer.periodic(
+    _t = Timer.periodic(
       const Duration(minutes: 5),
       (Timer timer) => _refresh(context),
     );
@@ -195,7 +189,7 @@ class _TimeTrackerState extends State<TimeTracker> {
 
   @override
   void dispose() {
-    this._t.cancel();
+    _t.cancel();
     super.dispose();
   }
 
@@ -207,12 +201,18 @@ class _TimeTrackerState extends State<TimeTracker> {
         updateInputs();
       });
     } catch (e) {
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context, rootNavigator: true)
           .pushReplacement(CupertinoPageRoute(
-        builder: (BuildContext context) => CredentialsPage(),
+        builder: (BuildContext context) => const CredentialsPage(),
       ))
           .whenComplete(() {
         state = null;
+        if (!mounted) {
+          return;
+        }
         showCupertinoDialog(
           context: context,
           builder: (BuildContext context) => CupertinoAlertDialog(
@@ -275,21 +275,21 @@ class _TimeTrackerState extends State<TimeTracker> {
     return CupertinoTabScaffold(
       controller: _tabController,
       tabBar: CupertinoTabBar(
-        items: <BottomNavigationBarItem>[
-          const BottomNavigationBarItem(
-            icon: const Icon(CupertinoIcons.timer),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.timer),
             label: 'Tracken',
           ),
-          const BottomNavigationBarItem(
-            icon: const Icon(CupertinoIcons.pen),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.pen),
             label: 'Zeiterfassung',
           ),
-          const BottomNavigationBarItem(
-            icon: const Icon(CupertinoIcons.clock),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.clock),
             label: 'Buchungen',
           ),
-          const BottomNavigationBarItem(
-            icon: const Icon(CupertinoIcons.settings),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.settings),
             label: 'Zugangsdaten',
           ),
         ],
@@ -300,8 +300,10 @@ class _TimeTrackerState extends State<TimeTracker> {
             return CupertinoTabView(
               builder: (BuildContext context) {
                 return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Container(
                           constraints: BoxConstraints(
@@ -323,14 +325,12 @@ class _TimeTrackerState extends State<TimeTracker> {
                         ),
                         TrackingLabel(state),
                       ],
-                      mainAxisAlignment: MainAxisAlignment.center,
                     ),
                     TrackingButton(
                       onPressed: () => track(context),
                       tracking: state.getStatus(),
                     ),
                   ],
-                  mainAxisAlignment: MainAxisAlignment.center,
                 );
               },
             );
@@ -340,10 +340,10 @@ class _TimeTrackerState extends State<TimeTracker> {
                 return ListView(
                   physics: const ClampingScrollPhysics(),
                   children: <Widget>[
-                    Center(
-                      child: const Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const Text(
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
                           "Zeiterfassung",
                           textScaleFactor: 2,
                         ),
@@ -368,6 +368,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               ),
                         ),
                         hideOnEmpty: true,
+                        hideSuggestionsOnKeyboardHide: false,
                         noItemsFoundBuilder: (BuildContext context) =>
                             Container(),
                         keepSuggestionsOnLoading: true,
@@ -403,7 +404,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                               title: setTrackerError,
                             );
                             updateInputs();
-                            FocusScope.of(context).requestFocus(_taskFocus);
+                            if (mounted) {
+                              FocusScope.of(context).requestFocus(_taskFocus);
+                            }
                             return <Project>[];
                           }
                           return p;
@@ -435,6 +438,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               ),
                         ),
                         hideOnEmpty: true,
+                        hideSuggestionsOnKeyboardHide: false,
                         noItemsFoundBuilder: (BuildContext context) =>
                             Container(),
                         onSuggestionSelected: (String suggestion) {
@@ -502,7 +506,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                         decoration: BoxDecoration(
                           boxShadow: state.getStatus()
                               ? const [
-                                  const BoxShadow(color: deactivatedGray),
+                                  BoxShadow(color: deactivatedGray),
                                 ]
                               : const [],
                           border: const Border(
@@ -517,6 +521,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               Row(
                                 children: <Widget>[
@@ -610,13 +615,14 @@ class _TimeTrackerState extends State<TimeTracker> {
                                                     if (state
                                                         .getStartedAt()
                                                         .isAfter(state
-                                                            .getStoppedAt()))
+                                                            .getStoppedAt())) {
                                                       state.setStoppedAt(
                                                           state.getStartedAt());
-                                                    else if (!state
-                                                        .hasStoppedTime())
+                                                    } else if (!state
+                                                        .hasStoppedTime()) {
                                                       state.setStoppedAt(
                                                           DateTime.now());
+                                                    }
                                                     catchError(
                                                       api.setTrackerState(
                                                           state),
@@ -632,9 +638,9 @@ class _TimeTrackerState extends State<TimeTracker> {
                                     },
                                   ),
                                   const Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: const Text("bis"),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text("bis"),
                                   ),
                                   GestureDetector(
                                     child: Text(hoursSeconds
@@ -663,13 +669,14 @@ class _TimeTrackerState extends State<TimeTracker> {
                                                     if (state
                                                         .getStoppedAt()
                                                         .isBefore(state
-                                                            .getStartedAt()))
+                                                            .getStartedAt())) {
                                                       state.setStartedAt(
                                                           state.getStoppedAt());
-                                                    else if (!state
-                                                        .hasStartedTime())
+                                                    } else if (!state
+                                                        .hasStartedTime()) {
                                                       state.setStartedAt(
                                                           DateTime.now());
+                                                    }
                                                     catchError(
                                                       api.setTrackerState(
                                                           state),
@@ -687,7 +694,6 @@ class _TimeTrackerState extends State<TimeTracker> {
                                 ],
                               ),
                             ],
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           ),
                         ),
                       ),
@@ -695,6 +701,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           CupertinoSwitch(
                             value: !state.getUnbillable(),
@@ -708,14 +715,14 @@ class _TimeTrackerState extends State<TimeTracker> {
                               });
                             },
                           ),
-                          Text("Abrechenbar?"),
+                          const Text("Abrechenbar?"),
                         ],
-                        mainAxisAlignment: MainAxisAlignment.center,
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           TrackingLabel(state),
                           TrackingButton(
@@ -723,13 +730,11 @@ class _TimeTrackerState extends State<TimeTracker> {
                             tracking: state.getStatus(),
                           ),
                         ],
-                        mainAxisAlignment: MainAxisAlignment.center,
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: CupertinoButton.filled(
-                        child: const Text("Buchen"),
                         disabledColor: deactivatedGray,
                         onPressed: state.getStatus()
                             ? null
@@ -772,13 +777,20 @@ class _TimeTrackerState extends State<TimeTracker> {
                                     api.setTrackerState(state),
                                     title: setTrackerError,
                                   );
+                                  if (!mounted) {
+                                    return;
+                                  }
                                   _refresh(context);
+                                  if (!mounted) {
+                                    return;
+                                  }
                                   FocusScope.of(context)
                                       .requestFocus(_projectFocus);
                                 } else {
                                   showNoProjectDialog(context);
                                 }
                               },
+                        child: const Text("Buchen"),
                       ),
                     ),
                     Padding(
@@ -813,9 +825,8 @@ class _TimeTrackerState extends State<TimeTracker> {
             return CupertinoTabView(
               builder: (BuildContext context) {
                 return EasyRefresh(
-                  header: MaterialHeader(),
+                  header: const MaterialHeader(),
                   onRefresh: () => _refresh(context),
-                  bottomBouncing: false,
                   child: CupertinoScrollbar(
                     child: ListView(
                       shrinkWrap: true,
@@ -828,7 +839,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: CupertinoButton.filled(
-                            child: Text(
+                            child: const Text(
                               "Dokument hochladen \n (Experimentell)",
                               textAlign: TextAlign.center,
                             ),
@@ -857,7 +868,8 @@ class _TimeTrackerState extends State<TimeTracker> {
                                             CupertinoDialogAction(
                                               child: const Text(
                                                   "Öffne im Browser"),
-                                              onPressed: () => launch(link),
+                                              onPressed: () =>
+                                                  launchUrlString(link),
                                             ),
                                             CupertinoDialogAction(
                                               isDestructiveAction: true,
@@ -890,9 +902,9 @@ class _TimeTrackerState extends State<TimeTracker> {
             return CupertinoTabView(
               builder: (BuildContext context) {
                 List<Widget> cs = [
-                  CSHeader('Ihre Papierkram.de Zugangsdaten'),
+                  const CSHeader('Ihre Papierkram.de Zugangsdaten'),
                   CSControl(
-                    nameWidget: Text("Firmen ID"),
+                    nameWidget: const Text("Firmen ID"),
                     contentWidget: Text(
                       api.authCompany,
                       style: const TextStyle(
@@ -901,7 +913,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                   ),
                   CSControl(
-                    nameWidget: Text("Nutzer"),
+                    nameWidget: const Text("Nutzer"),
                     contentWidget: Text(
                       api.authUsername,
                       style: const TextStyle(
@@ -913,16 +925,17 @@ class _TimeTrackerState extends State<TimeTracker> {
                   CSButton(CSButtonType.DESTRUCTIVE, "Abmelden", () {
                     Navigator.of(context, rootNavigator: true)
                         .pushReplacement(CupertinoPageRoute(
-                      builder: (BuildContext context) => CredentialsPage(),
+                      builder: (BuildContext context) =>
+                          const CredentialsPage(),
                     ))
                         .whenComplete(() {
                       state = null;
                       api.deleteCredsFromLocalStore();
                     });
                   }),
-                  CSHeader("Einstellungen"),
+                  const CSHeader("Einstellungen"),
                   CSControl(
-                    nameWidget: Text("Pausen hervorheben"),
+                    nameWidget: const Text("Pausen hervorheben"),
                     contentWidget: CupertinoSwitch(
                       onChanged: (bool changed) => setState(() {
                         highlightBreaks = changed;
@@ -932,7 +945,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                     ),
                   ),
                   CSControl(
-                    nameWidget: Text("Aufgaben vorschlagen"),
+                    nameWidget: const Text("Aufgaben vorschlagen"),
                     contentWidget: CupertinoSwitch(
                       onChanged: (bool changed) => setState(() {
                         taskSuggestions = changed;
@@ -944,7 +957,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                 ];
 
                 if (products != null && products.isNotEmpty) {
-                  cs.add(CSHeader("Kaufe mir ein ..."));
+                  cs.add(const CSHeader("Kaufe mir ein ..."));
                   for (ProductDetails product in products) {
                     cs.add(CSControl(
                       nameWidget: Text(
@@ -960,7 +973,7 @@ class _TimeTrackerState extends State<TimeTracker> {
                               padding: const EdgeInsets.only(right: 8.0),
                               child: Text(product.price),
                             ),
-                            Icon(CupertinoIcons.shopping_cart),
+                            const Icon(CupertinoIcons.shopping_cart),
                           ],
                         ),
                         onPressed: () {
@@ -976,19 +989,19 @@ class _TimeTrackerState extends State<TimeTracker> {
                 }
 
                 cs.addAll([
-                  CSHeader("Weitere Infos"),
+                  const CSHeader("Weitere Infos"),
                   CSLink(
                     title: "Im Store Anzeigen",
                     onPressed: () => AppReview.storeListing,
                   ),
                   CSLink(
                     title: "Quelltext",
-                    onPressed: () =>
-                        launch("https://github.com/SimonIT/timetracker"),
+                    onPressed: () => launchUrlString(
+                        "https://github.com/SimonIT/timetracker"),
                   ),
                   CSLink(
                     title: "Kontakt",
-                    onPressed: () => launch("mailto:simonit.orig@gmail.com"),
+                    onPressed: () => launchUrlString("mailto:simonit.orig@gmail.com"),
                   ),
                   CSLink(
                     title: "Lizenzen",
@@ -1096,7 +1109,7 @@ class _TimeTrackerState extends State<TimeTracker> {
           ),
           color: CupertinoTheme.of(context).primaryContrastingColor,
         ),
-        content: Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
+        content: const Text("Es wurde noch kein Projekt bzw. Task ausgewählt."),
         actions: [
           CupertinoDialogAction(
             isDefaultAction: true,
@@ -1121,10 +1134,10 @@ class _TimeTrackerState extends State<TimeTracker> {
       TableRow(
         decoration: rowHeading,
         children: <TableCell>[
-          TableCell(
+          const TableCell(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: const Text(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
                 "Heute",
                 textScaleFactor: 1.5,
               ),
@@ -1152,10 +1165,12 @@ class _TimeTrackerState extends State<TimeTracker> {
         BoxDecoration rowDecoration;
 
         if (highlightBreaks && i + 1 < e.length) {
-          if (!onSameDay(e[i].getTimeStamp(), e[i + 1].started_at))
+          if (!onSameDay(e[i].getTimeStamp(), e[i + 1].started_at)) {
             rowDecoration = rowDecorationNewDay;
-          else if (e[i].started_at.difference(e[i + 1].getTimeStamp()) >
-              const Duration(minutes: 2)) rowDecoration = rowDecorationBreak;
+          } else if (e[i].started_at.difference(e[i + 1].getTimeStamp()) >
+              const Duration(minutes: 2)) {
+            rowDecoration = rowDecorationBreak;
+          }
         }
 
         recentEntries.add(TableRow(
@@ -1216,10 +1231,10 @@ class _TimeTrackerState extends State<TimeTracker> {
     recentEntries.add(TableRow(
       decoration: rowHeading,
       children: <TableCell>[
-        TableCell(
+        const TableCell(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: const Text(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
               "Frühere Einträge",
               textScaleFactor: 1.5,
             ),
@@ -1235,10 +1250,10 @@ class _TimeTrackerState extends State<TimeTracker> {
 
     return Table(
       columnWidths: {
-        0: IntrinsicColumnWidth(),
-        1: FixedColumnWidth(90),
-        if (isLarge) 2: FixedColumnWidth(90),
-        if (isLarge) 3: FixedColumnWidth(180),
+        0: const IntrinsicColumnWidth(),
+        1: const FixedColumnWidth(90),
+        if (isLarge) 2: const FixedColumnWidth(90),
+        if (isLarge) 3: const FixedColumnWidth(180),
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.bottom,
       children: recentEntries,
@@ -1247,14 +1262,16 @@ class _TimeTrackerState extends State<TimeTracker> {
 }
 
 class CredentialsPage extends StatefulWidget {
+  const CredentialsPage({Key key}) : super(key: key);
+
   @override
   _CredentialsPageState createState() => _CredentialsPageState();
 }
 
 class _CredentialsPageState extends State<CredentialsPage> {
-  TextEditingController _company = TextEditingController();
-  TextEditingController _user = TextEditingController();
-  TextEditingController _password = TextEditingController();
+  final TextEditingController _company = TextEditingController();
+  final TextEditingController _user = TextEditingController();
+  final TextEditingController _password = TextEditingController();
 
   bool showPassword = false;
   bool showLoading = false;
@@ -1326,9 +1343,9 @@ class _CredentialsPageState extends State<CredentialsPage> {
           physics: const ClampingScrollPhysics(),
           children: <Widget>[
             const Center(
-              child: const Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: const Text(
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
                   "Ihre Papierkram.de Zugangsdaten",
                   textScaleFactor: 2,
                 ),
@@ -1452,8 +1469,8 @@ class _CredentialsPageState extends State<CredentialsPage> {
               ),
             ),
             if (showLoading)
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
+              const Padding(
+                padding: EdgeInsets.only(top: 10),
                 child: Center(
                   child: CupertinoActivityIndicator(
                     radius: 50,
@@ -1470,6 +1487,8 @@ class _CredentialsPageState extends State<CredentialsPage> {
 class LicensePage extends StatelessWidget {
   final Future<List<LicenseEntry>> _licenses =
       LicenseRegistry.licenses.toList();
+
+  LicensePage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1559,11 +1578,11 @@ class TrackingButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: CupertinoButton(
-        child: tracking
-            ? Icon(CupertinoIcons.pause_solid)
-            : Icon(CupertinoIcons.play_arrow_solid),
         onPressed: onPressed,
         color: tracking ? red : green,
+        child: tracking
+            ? const Icon(CupertinoIcons.pause_solid)
+            : const Icon(CupertinoIcons.play_arrow_solid),
       ),
     );
   }
@@ -1582,7 +1601,7 @@ class _TrackingLabelState extends State<TrackingLabel> {
   Timer _t;
 
   _TrackingLabelState() {
-    this._t = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _t = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       if (widget.state.getStatus()) setState(() {});
     });
   }
@@ -1611,7 +1630,7 @@ class _TrackingLabelState extends State<TrackingLabel> {
 
   @override
   void dispose() {
-    this._t.cancel();
+    _t.cancel();
     super.dispose();
   }
 }

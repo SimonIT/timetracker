@@ -53,7 +53,7 @@ Future<void> saveSettingsCheckToken(
         );
         authenticate();
       } else {
-        throw new Exception(
+        throw Exception(
             "Response does not contain a tocken \n\n $jsonResult");
       }
       break;
@@ -245,7 +245,7 @@ Future<String> uploadDocument(File document) async {
 }
 
 void writeCredsToLocalStore(String company, String username, String token) {
-  final FlutterSecureStorage storage = new FlutterSecureStorage();
+  const FlutterSecureStorage storage = FlutterSecureStorage();
 
   storage.write(key: 'company', value: company);
   storage.write(key: 'username', value: username);
@@ -253,7 +253,7 @@ void writeCredsToLocalStore(String company, String username, String token) {
 }
 
 Future<Map<String, String>> readCredsFromLocalStore() async {
-  final FlutterSecureStorage storage = new FlutterSecureStorage();
+  const FlutterSecureStorage storage = FlutterSecureStorage();
 
   String company = await storage.read(key: 'company');
   String username = await storage.read(key: 'username');
@@ -267,7 +267,7 @@ Future<Map<String, String>> readCredsFromLocalStore() async {
 }
 
 void deleteCredsFromLocalStore() {
-  final FlutterSecureStorage storage = new FlutterSecureStorage();
+  const FlutterSecureStorage storage = FlutterSecureStorage();
   storage.deleteAll();
 }
 
